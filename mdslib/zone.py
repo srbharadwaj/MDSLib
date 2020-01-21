@@ -1,207 +1,200 @@
 from mdslib.connection_manager.errors import CLIError
 from .vsan import Vsan, VsanNotPresent
-# from .utility import nxapikeys
+from . import constants
 from .nxapikeys import zonekeys
 import logging
+import time
 
 log = logging.getLogger(__name__)
+
+
+class InvalidArgument(Exception):
+    """
+
+    """
+
+    def __init__(self, message):
+        """
+
+        Args:
+            message:
+        """
+        self.message = message.strip()
+
+    def __repr__(self):
+        """
+
+        Returns:
+
+        """
+        return '%s: %s' % (self.__class__.__name__, self.message)
+
+    __str__ = __repr__
 
 
 class Zone(object):
     def __init__(self, switch, vsanobj, name):
         self.__swobj = switch
-        self.__vsanobj = vsanobj
-        self.__vsan = self.__vsanobj.id
-        if self.__vsan is None:
-            raise VsanNotPresent
-        self.__name = name
-        # self.__zones = None
+        self._vsanobj = vsanobj
+        self._vsan = self._vsanobj.id
+        if self._vsan is None:
+            raise VsanNotPresent("Vsan " + str(self._vsanobj._id) + " is not present on the switch.")
+        self._name = name
+        self.__zones = None
         self.__rpc = None
         self.__method = u'cli_conf'
 
     @property
     def name(self):
-        return self.__vsanobj
+        out = self.__show_zone_name()
+        if out:
+            return out[zonekeys.ZONE_NAME]
 
     @property
     def vsan(self):
-        return self.__vsanobj
+        if self.name is not None:
+            return self._vsanobj
+        else:
+            return None
+
+    @property
+    def members(self):
+        out = self.__show_zone_name()
+        if out:
+            try:
+                retout = out['TABLE_zone_member']['ROW_zone_member']
+            except KeyError:
+                return None
+            if type(retout) is dict:
+                # means there is only one member for the zone, so convert to list and return
+                return [retout]
+            return retout
 
     @property
     def mode(self):
-        facts_out = self.get_facts()
-        return self.__get_mode(facts_out)
+        out = self.__show_zone_status()
+        return out[zonekeys.ZONE_MODE]
 
     @mode.setter
-    def mode(self, mode):
-        log.debug("Setting zone mode to " + mode + " for vsan " + str(self.__vsan))
-        cmd = "zone mode enhanced vsan " + str(self.__vsan)
-        if mode.lower() == 'enhanced':
-            cmd = cmd
-        elif mode.lower() == 'basic':
-            cmd = "no " + cmd
+    def mode(self, value):
+        cmd = "terminal dont-ask ; zone mode " + constants.ENHANCED + " vsan " + str(
+            self._vsan) + " ; no terminal dont-ask"
+        if value.lower() == constants.ENHANCED:
+            self.__send_zone_cmds(cmd)
+        elif value.lower() == constants.BASIC:
+            cmd = cmd.replace("zone mode", "no zone mode")
+            self.__send_zone_cmds(cmd)
         else:
-            return self.__return_error("Invalid zone mode: " + str(mode), "basic")
-        return self._send_zone_cmds(cmd)
+            raise InvalidArgument(
+                "Invalid zone mode " + value + " . Valid values are: " + constants.BASIC + "," + constants.ENHANCED)
 
     @property
-    def zone_names(self):
-        retval = []
-        allzones = self.zones
-        if allzones is None:
-            return None
-        for eachrow in allzones:
-            retval.append(eachrow['zone_name'])
-        return retval
+    def default_zone(self):
+        out = self.__show_zone_status()
+        return out[zonekeys.ZONE_DEFAULT_ZONE]
+
+    @default_zone.setter
+    def default_zone(self, value):
+        cmd = "terminal dont-ask ; zone default-zone " + constants.PERMIT + " vsan " + str(
+            self._vsan) + " ; no terminal dont-ask"
+        if value.lower() == constants.PERMIT:
+            self.__send_zone_cmds(cmd)
+        elif value.lower() == constants.DENY:
+            cmd = cmd.replace("zone default-zone", "no zone default-zone")
+            self.__send_zone_cmds(cmd)
+        else:
+            raise CLIError("No cmd sent",
+                           "Invalid default-zone value " + value + " . Valid values are: " + constants.PERMIT + "," + constants.DENY)
 
     @property
-    def zones(self):
-        facts_out = self.get_facts()
-        zones = facts_out.get('zone_details')
-        if not zones:
-            return None
-        elif type(zones) is dict:
-            return [zones]
+    def smart_zone(self):
+        out = self.__show_zone_status()
+        return out[zonekeys.ZONE_SMART_ZONE]
+
+    @property
+    def locked(self):
+        out = self.__show_zone_status()
+        self._lock_details = out[zonekeys.ZONE_SESSION]
+        if "none" in self._lock_details:
+            return False
         else:
-            return zones
-
-    def create(self, name):
-        log.debug("Create zone with name " + name + " in vsan " + str(self.__vsan))
-        cmd = "zone name " + name + " vsan " + str(self.__vsan)
-        return self._send_zone_cmds(cmd)
-
-    def delete(self, name):
-        log.debug("Delete zone with name " + name + " in vsan " + str(self.__vsan))
-        cmd = "no zone name " + name + " vsan " + str(self.__vsan)
-        return self._send_zone_cmds(cmd)
-
-    def add_members(self, name, members):
-        cmds = self.__member_add_del(self.__vsan, name, members)
-        return self._send_zone_cmds(cmds)
-
-    def remove_members(self, name, members):
-        cmds = self.__member_add_del(self.__vsan, name, members, add=False)
-        return self._send_zone_cmds(cmds)
-
-    @staticmethod
-    def __member_add_del(vsan, name, members, add=True):
-        cmdlist = []
-        if add:
-            log.debug("Trying to add zone members to zone with name " + name + " in vsan " + str(vsan))
-        else:
-            log.debug("Trying to remove zone members from zone with name " + name + " in vsan " + str(vsan))
-
-        cmd = "zone name " + name + " vsan " + str(vsan)
-        cmdlist.append(cmd)
-        for eachmem in members:
-            for k, v in eachmem.items():
-                c = "member " + k + " " + v
-                if add:
-                    cmd = c
-                else:
-                    cmd = "no " + c
-                cmdlist.append(cmd)
-        cmds = " ; ".join(cmdlist)
-        return cmds
-
-    def is_locked(self):
-        facts_out = self.get_facts()
-        if self.__locked_user(facts_out) is None:
             return True
-        return False
 
     def clear_lock(self):
-        cmd = "terminal dont-ask" + " ; clear zone lock vsan " + self.__vsan + " ;  no terminal dont-ask"
-        try:
-            self.__swobj.show(cmd)
-        except CLIError as c:
-            return True, c.message
-        return False, None
+        cmd = "terminal dont-ask ; clear zone lock vsan  " + str(self._vsan) + " ; no terminal dont-ask"
+        out = self.__swobj.config(cmd)
+        if out is not None:
+            msg = out['msg']
+            if msg:
+                if "Zone database not locked" in msg:
+                    log.debug(msg)
+                elif "No pending info found" in msg:
+                    log.debug(msg)
+                else:
+                    log.error(msg)
+                    raise CLIError(cmd, msg)
 
-    @staticmethod
-    def __get_mode(facts_out):
-        print(facts_out)
-        if zonekeys.ZONE_MODE in facts_out.keys():
-            return facts_out[zonekeys.ZONE_MODE]
-        return None
+    def __show_zone_name(self):
+        log.debug("Executing the cmd show zone name <> vsan <> ")
+        cmd = "show zone name " + self._name + " vsan  " + str(self._vsan)
+        out = self.__swobj.show(cmd)
+        log.debug(out)
+        # print(out)
+        return out
 
-    def get_facts(self):
-        log.debug("Getting zone facts")
-        retoutput = {}
-        temp = {}
-        out = self.__swobj.show("show zone status vsan " + str(self.__vsan))
-        if out:
-            # print(out)
-            out = out['TABLE_zone_status']['ROW_zone_status']
+    def __show_zone_status(self):
+        log.debug("Executing the cmd show zone status vsan <> ")
+        cmd = "show zone status vsan  " + str(self._vsan)
+        out = self.__swobj.show(cmd)
+        log.debug(out)
+        # print(out)
+        return out['TABLE_zone_status']['ROW_zone_status']
 
-            out1 = self.__swobj.show("show zone vsan " + str(self.__vsan))
-            if out1:
-                temp[zonekeys.ZONE_DETAILS] = out1['TABLE_zone']['ROW_zone']
+    def __send_zone_cmds(self, cmd):
+        if self.locked:
+            raise CLIError("ERROR!! Zone lock is acquired. Lock details are: " + self._lock_details)
+        out = self.__swobj.config(cmd)
+        log.debug(out)
+        if out is not None:
+            msg = out['msg']
+            if msg:
+                if "Current zoning mode same as specified zoning mode" in msg:
+                    log.debug(msg)
+                elif "Set zoning mode command initiated. Check zone status" in msg:
+                    log.debug(msg)
+                elif "Enhanced zone session has been created" in msg:
+                    log.debug(msg)
+                elif "No zone policy change" in msg:
+                    log.debug(msg)
+                else:
+                    log.error(msg)
+                    self.__clear_lock_if_enhanced()
+                    raise CLIError(cmd, msg)
+        time.sleep(5)
+        self.__commit_config_if_locked()
 
-            retoutput = dict(out, **temp)
-        return retoutput
+    def __clear_lock_if_enhanced(self):
+        if self.mode == constants.ENHANCED:
+            self.clear_lock()
 
-    @staticmethod
-    def __locked_user(facts_out):
-        if 'session' in facts_out.keys():
-            lock = facts_out['session'].strip()
-            if lock == "none":
-                return None
-            else:
-                return lock
-
-    def _send_zone_cmds(self, command):
-        log.debug(command)
-        facts_out = self.get_facts()
-        mode = self.__get_mode(facts_out)
-
-        lock_user = self.__locked_user(facts_out)
-        if lock_user is not None:
-            return self.__return_error("Switch has acquired zone lock by user " + lock_user, mode)
-        try:
-            o = self.__swobj.config(command, self.__rpc, self.__method)
-            log.debug(o)
-            if o is not None:
-                # msg = o['msg']
-                msg = o
-                if msg:
-                    if "Current zoning mode same as specified zoning mode" in msg:
-                        log.debug(msg)
-                    elif "Set zoning mode command initiated. Check zone status" in msg:
-                        log.debug(msg)
-                    elif "Enhanced zone session has been created" in msg:
-                        log.debug(msg)
-                    else:
-                        return self.__return_error(msg, mode)
-        except CLIError as c:
-            return self.__return_error(c.message, mode)
-
-        if mode.lower() == 'enhanced':
-            cmd = "zone commit vsan " + str(self.__vsan)
+    def __commit_config_if_locked(self):
+        time.sleep(2)
+        if self.locked:
+            cmd = "zone commit vsan " + str(self._vsan)
+            log.debug("Executing the cmd " + cmd)
             try:
-                o = self.__swobj.config(cmd, self.__rpc, self.__method)
+                o = self.__swobj.config(cmd)
                 if o is not None:
-                    msg = o
+                    msg = o['msg']
                     if msg:
                         if "Commit operation initiated. Check zone status" in msg:
-                            pass
+                            return
                         else:
-                            return self.__return_error(msg, mode)
+                            log.error(msg)
+                            raise CLIError(cmd, msg)
             except CLIError as c:
-                if "No pending info found" in c.message:
-                    pass
+                msg = c.message
+                if "No pending info found" in msg:
+                    return
                 else:
-                    return self.__return_error(c.message, mode)
-
-        return False, None
-
-    def __return_error(self, message, mode):
-        log.error(message)
-        if mode is not None:
-            if mode.lower() == 'enhanced':
-                cmd = "clear zone lock"
-                try:
-                    self.__swobj.config(cmd, self.__rpc, self.__method)
-                except CLIError as c:
-                    return True, c.message
-            return True, message
+                    raise CLIError(cmd, msg)

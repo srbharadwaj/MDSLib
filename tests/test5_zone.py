@@ -36,10 +36,10 @@ sw121 = Switch(
 
 sw = sw121
 
-from mdslib import zone1,vsan
+from mdslib import zone,vsan
 from mdslib.constants import BASIC,ENHANCED,PERMIT,DENY
 v1 = vsan.Vsan(sw,1)
-z1 = zone1.Zone(sw,v1,"zonejdsu")
+z1 = zone.Zone(sw, v1, "zonejdsu")
 print("Zone name is : " + z1.name)
 print("Zone vsan obj is : " + str(z1.vsan))
 print("Zone vsan id is : " + str(z1.vsan.id))

@@ -95,7 +95,6 @@ class DeviceAlias(object):
 
     def create(self, namepwwn):
         existingdb = self.database
-        cmd = "device-alias database ; "
         facts_out = self.__get_facts()
         mode = self.mode
         for name, pwwn in namepwwn.items():

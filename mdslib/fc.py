@@ -1,5 +1,6 @@
 from .interface import Interface
 from .constants import SHUTDOWN,NO_SHUTDOWN
+from .nxapikeys import interfacekeys
 import logging
 
 log = logging.getLogger(__name__)
@@ -23,3 +24,18 @@ class Fc(Interface):
 
     # out_of_service property
     out_of_service = property(fset=_set_out_of_service)
+
+    @property
+    def transceiver_details(self):
+        result = {}
+        cmd = "show interface " + self.name + " transceiver"
+        log.debug("Sending the cmd")
+        log.debug(cmd)
+        out = self.__swobj.config(cmd)['body']['TABLE_interface_trans']['ROW_interface_trans']['TABLE_calib']['ROW_calib']
+        if type(out) is list:
+            for d in out:
+                result.update(d)
+        else:
+            result = out
+        log.debug(result)
+        return result

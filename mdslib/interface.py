@@ -1,4 +1,4 @@
-from .utility import nxapikeys
+from .nxapikeys import interfacekeys
 from .constants import *
 import logging
 import re
@@ -62,7 +62,7 @@ class Interface(object):
     @property
     def mode(self):
         out = self.__parse_show_int_brief()
-        return out[nxapikeys.INT_MODE]
+        return out[interfacekeys.INT_MODE]
 
     @mode.setter
     def mode(self, value):
@@ -77,7 +77,7 @@ class Interface(object):
     @property
     def speed(self):
         out = self.__parse_show_int_brief()
-        return out[nxapikeys.INT_SPEED]
+        return out[interfacekeys.INT_SPEED]
 
     @speed.setter
     def speed(self, value):
@@ -92,7 +92,7 @@ class Interface(object):
     @property
     def trunk(self):
         out = self.__parse_show_int_brief()
-        return out[nxapikeys.INT_ADMIN_TRUNK_MODE]
+        return out[interfacekeys.INT_ADMIN_TRUNK_MODE]
 
     @trunk.setter
     def trunk(self, value):
@@ -107,7 +107,7 @@ class Interface(object):
     @property
     def status(self):
         out = self.__parse_show_int_brief()
-        return out[nxapikeys.INT_STATUS]
+        return out[interfacekeys.INT_STATUS]
 
     @status.setter
     def status(self, value):

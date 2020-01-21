@@ -43,16 +43,3 @@ class PortChannel(Interface):
     def delete(self):
         cmd = "no interface port-channel " + str(self._id)
         self.__swobj.config(cmd)
-        # try:
-        #     cmd = "terminal dont-ask ; " \
-        #           "vsan database ; " \
-        #           "no vsan " + str(self._id)
-        #     self.__swobj.config(cmd)
-        # except CLIError as c:
-        #     cmd = "no terminal dont-ask"
-        #     self.__swobj.config(cmd)
-        #     log.error(c)
-        #     raise CLIError(cmd, c.message)
-        # finally:
-        #     cmd = "no terminal dont-ask"
-        #     self.__swobj.config(cmd)

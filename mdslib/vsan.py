@@ -1,5 +1,5 @@
 from mdslib.connection_manager.errors import CLIError
-from mdslib.utility import nxapikeys
+from mdslib.nxapikeys import vsankeys
 
 import logging
 
@@ -41,7 +41,7 @@ class Vsan(object):
             out = self.__get_facts()
         except VsanNotPresent:
             return None
-        vid = out[nxapikeys.VSAN_ID]
+        vid = out[vsankeys.VSAN_ID]
         if type(vid) is str:
             return int(vid)
         else:
@@ -54,7 +54,7 @@ class Vsan(object):
         except VsanNotPresent:
             return None
         if out:
-            return out.get(nxapikeys.VSAN_NAME)
+            return out.get(vsankeys.VSAN_NAME)
         return None
 
     @name.setter
@@ -68,7 +68,7 @@ class Vsan(object):
         except VsanNotPresent:
             return None
         if out:
-            return out.get(nxapikeys.VSAN_STATE)
+            return out.get(vsankeys.VSAN_STATE)
         return None
 
     @property
@@ -138,7 +138,7 @@ class Vsan(object):
         listofvsaninfo = shvsan["TABLE_vsan"]["ROW_vsan"]
         vsanlist = []
         for eachv in listofvsaninfo:
-            vsanlist.append(str(eachv[nxapikeys.VSAN_ID]))
+            vsanlist.append(str(eachv[vsankeys.VSAN_ID]))
         if str(self._id) not in vsanlist:
             raise VsanNotPresent("Vsan " + str(self._id) + " is not present on the switch.")
 
@@ -146,7 +146,7 @@ class Vsan(object):
 
         # Parse show vsan json output
         for eachele in listofvsaninfo:
-            if str(eachele[nxapikeys.VSAN_ID]) == str(self._id):
+            if str(eachele[vsankeys.VSAN_ID]) == str(self._id):
                 shvsan_req_out = eachele
                 break
         if not shvsan_req_out:

@@ -42,41 +42,44 @@ from mdslib.fc import Fc
 from mdslib.portchannel import PortChannel
 
 fobj = Fc(sw, name="fc1/57")
-
-banner("Get info about interface fc1/57")
-print("Desc: " + fobj.description)
-print("Mode: " + fobj.mode)
-print("Name: " + fobj.name)
-print("Speed: " + fobj.speed)
-print("Status: " + fobj.status)
-print("Trunk: " + fobj.trunk)
-fobj.description = "Setting test interface desc via script"
-fobj.status = "no shutdown"
-fobj.trunk = "auto"
-fobj.mode = "E"
-fobj.speed = "auto"
-time.sleep(2)
-print("Desc: " + fobj.description)
-print("Mode: " + fobj.mode)
-print("Name: " + fobj.name)
-print("Speed: " + fobj.speed)
-print("Status: " + fobj.status)
-print("Trunk: " + fobj.trunk)
-# from mdslib.interface import Interface
-# i = Interface(sw)
-
-
-
-banner(" PortChannel section")
-# Lets play with port-channel
-pc22 = PortChannel(switch=sw,id=22)
-pc22.create()
-pc22.description = "This is a sample pc description"
-banner("Get info about interface pc22")
-print("Desc: " + pc22.description)
-print("Mode: " + pc22.mode)
-print("Name: " + pc22.name)
-print("Speed: " + pc22.speed)
-print("Status: " + pc22.status)
-print("Trunk: " + pc22.trunk)
-pc22.delete()
+print(fobj.transceiver_details)
+fobj1 = Fc(sw, name="fc1/4")
+print(fobj1.transceiver_details)
+#
+# banner("Get info about interface fc1/57")
+# print("Desc: " + fobj.description)
+# print("Mode: " + fobj.mode)
+# print("Name: " + fobj.name)
+# print("Speed: " + fobj.speed)
+# print("Status: " + fobj.status)
+# print("Trunk: " + fobj.trunk)
+# fobj.description = "Setting test interface desc via script"
+# fobj.status = "no shutdown"
+# fobj.trunk = "auto"
+# fobj.mode = "E"
+# fobj.speed = "auto"
+# time.sleep(2)
+# print("Desc: " + fobj.description)
+# print("Mode: " + fobj.mode)
+# print("Name: " + fobj.name)
+# print("Speed: " + fobj.speed)
+# print("Status: " + fobj.status)
+# print("Trunk: " + fobj.trunk)
+# # from mdslib.interface import Interface
+# # i = Interface(sw)
+#
+#
+#
+# banner(" PortChannel section")
+# # Lets play with port-channel
+# pc22 = PortChannel(switch=sw,id=22)
+# pc22.create()
+# pc22.description = "This is a sample pc description"
+# banner("Get info about interface pc22")
+# print("Desc: " + pc22.description)
+# print("Mode: " + pc22.mode)
+# print("Name: " + pc22.name)
+# print("Speed: " + pc22.speed)
+# print("Status: " + pc22.status)
+# print("Trunk: " + pc22.trunk)
+# pc22.delete()
