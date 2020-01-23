@@ -2,6 +2,7 @@ from tests.enablelog import ScriptLog
 from tests.enablelog import banner
 import pprint
 
+from .enablelog import ScriptLog
 sl = ScriptLog("switch.log")
 log = sl.log
 

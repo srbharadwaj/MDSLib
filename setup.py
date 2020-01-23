@@ -4,7 +4,7 @@ readme = open('README.md').read()
 
 setup(
     name='MDSLIBRARY',
-    version='',
+    version="0.1",
     packages=find_packages(exclude=('test',)),
     url='https://github.com/srbharadwaj/mdsLib',
     license='',
