@@ -1,8 +1,10 @@
-from tests.enablelog import ScriptLog
-from tests.enablelog import banner
-import pprint
+# from tests.enablelog import ScriptLog
+# from tests.enablelog import banner
+# import pprint
 
-from .enablelog import ScriptLog
+from .context import mdslib
+from .enablelog import ScriptLog,banner
+import pprint
 sl = ScriptLog("switch.log")
 log = sl.log
 
