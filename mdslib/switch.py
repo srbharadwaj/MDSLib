@@ -52,7 +52,7 @@ class Switch(object):
 
         self.__ip_address = ip_address
         self.__username = username
-        #self.__password = password
+        # self.__password = password
         self.connectiontype = connection_type
         self.port = port
         self.timeout = timeout
@@ -150,11 +150,8 @@ class Switch(object):
         :return:
         """
         log.info("url is :" + self.getUrl())
-        # print "url is :" + self.getUrl()
         log.info("msg fmt is :" + self.getMsgFormat())
-        # print "msg fmt is :" + self.getMsgFormat()
         log.info("cmd type is :" + self.getCmdType())
-        # print "cmd type is :" + self.getCmdType()
 
     def __validate_msgfmt_and_cmdtype(self, msg_fmt, cmd_type):
         """
@@ -194,7 +191,7 @@ class Switch(object):
         else:
             # TODO
             # Throw proper critical warning
-            print("TODO")
+            # print("TODO")
             raise NotImplementedError
 
         self.__log_info_about_url_msgfmt_cmdtype()

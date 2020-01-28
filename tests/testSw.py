@@ -1,5 +1,5 @@
 def main():
-    from tests.enablelog import ScriptLog,banner
+    from tests.enablelog import ScriptLog, banner
     sl = ScriptLog("switch.log")
     log = sl.log
     from mdslib.switch import Switch
@@ -28,5 +28,6 @@ def main():
     print("switch npv state is : " + str(sw.npv))
     banner("end")
 
-if __name__== "__main__":
-  main()
+
+if __name__ == "__main__":
+    main()

@@ -37,6 +37,7 @@ sw121 = Switch(
 sw = sw121
 
 from mdslib.vsan import Vsan
+from mdslib.fc import Fc
 
 banner("Creating vsan 98 and 99")
 v98 = Vsan(switch=sw, id=98)
@@ -45,14 +46,28 @@ v98.create("98thVsan")
 v99.create("99thVsan")
 banner("end")
 print()
+v1 = Vsan(switch=sw, id=1)
+print("Vsan 1 interfaces are..")
+print(v1.interfaces)
+
+# Lets create fc interface object for fc1/11,fc1/12,fc1/13
+fc11 = Fc(switch=sw, name="fc1/11")
+fc12 = Fc(switch=sw, name="fc1/12")
+fc13 = Fc(switch=sw, name="fc1/13")
+v98.add_interfaces([fc11])
+v99.add_interfaces([fc12, fc13])
 
 banner("Get info about vsan 98 and 99")
 print("Vsan id    : " + str(v98.id))
 print("Vsan name  : " + v98.name)
 print("Vsan state : " + v98.state)
+print("Vsan interfaces : ")
+print(v98.interfaces)
 print("Vsan id    : " + str(v99.id))
 print("Vsan name  : " + v99.name)
 print("Vsan state : " + v99.state)
+print("Vsan interfaces : ")
+print(v99.interfaces)
 banner("end")
 print()
 
@@ -78,5 +93,7 @@ v99.delete()
 print("Vsan id    : " + str(v99.id))
 print("Vsan name  : " + str(v99.name))
 print("Vsan state : " + str(v99.state))
+print(v99.interfaces)
 banner("end")
 print()
+v99.add_interfaces(["asdsa"])

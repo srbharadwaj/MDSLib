@@ -1,4 +1,3 @@
-
 # show vsan
 VSAN_ID = "vsan"
 VSAN_NAME = "name"

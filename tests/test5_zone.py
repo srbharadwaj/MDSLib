@@ -36,9 +36,10 @@ sw121 = Switch(
 
 sw = sw121
 
-from mdslib import zone,vsan
-from mdslib.constants import BASIC,ENHANCED,PERMIT,DENY
-v1 = vsan.Vsan(sw,1)
+from mdslib import zone, vsan
+from mdslib.constants import BASIC, ENHANCED, PERMIT, DENY
+
+v1 = vsan.Vsan(sw, 1)
 z1 = zone.Zone(sw, v1, "zonejdsu")
 print("Zone name is : " + z1.name)
 print("Zone vsan obj is : " + str(z1.vsan))
@@ -47,7 +48,7 @@ print("Zone members are : ")
 print(z1.members)
 print("Zone mode is : " + z1.mode)
 
-#print("Zone defzone is : " + z1.default_zone) #BUG
+# print("Zone defzone is : " + z1.default_zone) #BUG
 print("Zone defzone is : ")
 while True:
     o = z1.default_zone
@@ -59,7 +60,6 @@ print("Zone smartzone is : " + z1.smart_zone)
 print("Zone locked is : " + str(z1.locked))
 print("Clearing the lock..")
 z1.clear_lock()
-
 
 print("Set mode to basic...")
 z1.mode = BASIC
@@ -78,9 +78,6 @@ except Exception as e:
     print("Caught correct exception zone mode")
     print(e.args)
 
-
-
-
 print("Set defzone to deny...")
 z1.default_zone = DENY
 print("Zone name is : " + z1.name)
@@ -93,7 +90,9 @@ while True:
 
 print("Set defzone to permit...")
 z1.default_zone = PERMIT
-import time ; time.sleep(1)
+import time;
+
+time.sleep(1)
 print("Zone name is : " + z1.name)
 print("Zone defzone is : ")
 while True:
@@ -101,7 +100,6 @@ while True:
     print(o)
     if type(o) is str:
         break
-
 
 print("Set defzone to deny...")
 z1.default_zone = DENY

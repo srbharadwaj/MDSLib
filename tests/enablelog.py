@@ -8,7 +8,7 @@ def banner(text, ch='=', length=78):
 
 
 class ScriptLog(object):
-    def __init__(self, logfile,consolelevel=logging.INFO):
+    def __init__(self, logfile, consolelevel=logging.INFO):
         logFormatter = logging.Formatter("[%(asctime)s] [%(module)-14.14s] [%(levelname)-5.5s] %(message)s")
         self.log = logging.getLogger()
 

@@ -26,7 +26,8 @@ class InvalidTrunkMode(Exception):
 class InvalidSpeed(Exception):
     def __init__(self, value):
         Exception.__init__(self,
-                           "Invalid speed (" + str(value) + "), speed must be one of (" + ', '.join(str(x) for x in VALID_SPEED) + ")")
+                           "Invalid speed (" + str(value) + "), speed must be one of (" + ', '.join(
+                               str(x) for x in VALID_SPEED) + ")")
 
 
 class InvalidMode(Exception):
@@ -62,7 +63,9 @@ class Interface(object):
     @property
     def mode(self):
         out = self.__parse_show_int_brief()
-        return out[interfacekeys.INT_MODE]
+        if out is not None:
+            return out[interfacekeys.INT_MODE]
+        return None
 
     @mode.setter
     def mode(self, value):
@@ -77,7 +80,9 @@ class Interface(object):
     @property
     def speed(self):
         out = self.__parse_show_int_brief()
-        return out[interfacekeys.INT_SPEED]
+        if out is not None:
+            return out[interfacekeys.INT_SPEED]
+        return None
 
     @speed.setter
     def speed(self, value):
@@ -87,12 +92,14 @@ class Interface(object):
             cmd = "interface " + self.name + " ; switchport speed  " + str(value)
             log.debug("Sending the cmd: " + cmd)
             out = self.__swobj.config(cmd)
-            print(out)
+            # print(out)
 
     @property
     def trunk(self):
         out = self.__parse_show_int_brief()
-        return out[interfacekeys.INT_ADMIN_TRUNK_MODE]
+        if out is not None:
+            return out[interfacekeys.INT_ADMIN_TRUNK_MODE]
+        return None
 
     @trunk.setter
     def trunk(self, value):
@@ -102,12 +109,14 @@ class Interface(object):
             cmd = "interface " + self.name + " ; switchport trunk mode  " + value
             log.debug("Sending the cmd: " + cmd)
             out = self.__swobj.config(cmd)
-            print(out)
+            # print(out)
 
     @property
     def status(self):
         out = self.__parse_show_int_brief()
-        return out[interfacekeys.INT_STATUS]
+        if out is not None:
+            return out[interfacekeys.INT_STATUS]
+        return None
 
     @status.setter
     def status(self, value):
@@ -117,14 +126,32 @@ class Interface(object):
             cmd = "interface " + self.name + " ; " + value
             log.debug("Sending the cmd: " + cmd)
             out = self.__swobj.config(cmd)
-            print(out)
+            # print(out)
+
+    @property
+    def counters(self):
+        cmd = "show interface " + self.name + " counters brief"
+        out = self.__swobj.show(cmd)
+        log.debug(out)
+        briefoutput = out['TABLE_counters_brief']['ROW_counters_brief']
+        # print(briefoutput)
+        cmd = "show interface " + self.name + " counters detail"
+        out = self.__swobj.show(cmd)
+        log.debug(out)
+        # detailoutput = out['TABLE_ifid_counters']['ROW_ifid_counters']
+        detailoutput = out
+        # print(detailoutput)
+        concatoutput = {**briefoutput, **detailoutput}
+        concatoutput.pop(interfacekeys.INTERFACE)
+        # print(concatoutput)
+        return concatoutput
 
     def __parse_show_int_brief(self):
         log.debug("Getting sh int brief output")
         out = self.__swobj.show("show interface brief ")
         log.debug(out)
-        #print(out)
-        fcmatch = re.match(PAT_FC,self.name)
+        # print(out)
+        fcmatch = re.match(PAT_FC, self.name)
         pcmatch = re.match(PAT_PC, self.name)
         if fcmatch:
             out = out['TABLE_interface_brief_fc']['ROW_interface_brief_fc']
@@ -132,8 +159,16 @@ class Interface(object):
                 if eachout['interface_fc'] == self.name:
                     return eachout
         elif pcmatch:
-            out = out['TABLE_interface_brief_portchannel']['ROW_interface_brief_portchannel']
-            for eachout in out:
+            # Need to check if "sh int brief" has PC info
+            pcinfo = out.get('TABLE_interface_brief_portchannel', None)
+            if pcinfo is None:
+                return None
+            out = pcinfo['ROW_interface_brief_portchannel']
+            if type(out) is dict:
+                outlist = [out]
+            else:
+                outlist = out
+            for eachout in outlist:
                 if eachout['interface'] == self.name:
                     return eachout
         return None

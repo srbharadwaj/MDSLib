@@ -1,5 +1,9 @@
-from mdslib.connection_manager.errors import CLIError
-from mdslib.nxapikeys import vsankeys
+from .connection_manager.errors import CLIError
+from .fc import Fc
+from .portchannel import PortChannel
+from .nxapikeys import vsankeys
+from .constants import PAT_FC, PAT_PC
+import re
 
 import logging
 
@@ -7,6 +11,30 @@ log = logging.getLogger(__name__)
 
 
 class VsanNotPresent(Exception):
+    """
+
+    """
+
+    def __init__(self, message):
+        """
+
+        Args:
+            message:
+        """
+        self.message = message.strip()
+
+    def __repr__(self):
+        """
+
+        Returns:
+
+        """
+        return '%s: %s' % (self.__class__.__name__, self.message)
+
+    __str__ = __repr__
+
+
+class InvalidInterface(Exception):
     """
 
     """
@@ -73,15 +101,36 @@ class Vsan(object):
 
     @property
     def interfaces(self):
-        raise NotImplementedError
-        out = self.__get_facts()
-        if type(out) is not dict:
+        try:
+            out = self.__get_facts()
+        except VsanNotPresent:
+            return None
+        cmd = "show vsan " + str(self._id) + " membership"
+        out = self.__swobj.show(cmd)
+        out = out['TABLE_vsan_membership']['ROW_vsan_membership']
+        log.debug(out)
+        allint = out.get('interfaces', None)
+        if allint is None:
             return None
         else:
-            try:
-                return out['vsan_interfaces']
-            except KeyError:
-                return None
+            retelements = []
+            if type(allint) is str:
+                allintnames = [allint]
+            else:
+                allintnames = allint
+            for eachintname in allintnames:
+                fcmatch = re.match(PAT_FC, eachintname)
+                pcmatch = re.match(PAT_PC, eachintname)
+                if fcmatch:
+                    intobj = Fc(switch=self.__swobj, name=eachintname)
+                elif pcmatch:
+                    id = pcmatch.group(1)
+                    intobj = PortChannel(switch=self.__swobj, id=int(id))
+                else:
+                    log.error(
+                        "Unsupported interface " + eachintname + " , hence skipping it, this type of interface is not supported yet")
+                retelements.append(intobj)
+            return retelements
 
     # property for suspend
     def _set_suspend(self, value):
@@ -118,19 +167,27 @@ class Vsan(object):
             self.__swobj.config(cmd)
 
     def add_interfaces(self, interfaces):
-        raise NotImplementedError
-        # cmd = "vsan database ; vsan " + str(self.name) + " interface " + ','.join(interfaces)
-        cmdlist = []
-        for eachint in interfaces:
-            cmd = "vsan database ; vsan " + str(self._id) + " interface " + eachint
-            cmdlist.append(cmd)
-        try:
-            self.__swobj.config_list(cmdlist)
-        except CLIError as c:
-            if "membership being configured is already configured for the interface" in c.message:
-                return False, None
-            log.error(c)
-            raise CLIError(cmd, c.message)
+        if self.id is None:
+            raise VsanNotPresent("Vsan " + str(self._id) + " is not present on the switch.")
+        else:
+            cmdlist = []
+            for eachint in interfaces:
+                fcmatch = re.match(PAT_FC, eachint.name)
+                pcmatch = re.match(PAT_PC, eachint.name)
+                if fcmatch or pcmatch:
+                    cmd = "vsan database ; vsan " + str(self._id) + " interface " + eachint.name
+                    cmdlist.append(cmd)
+                else:
+                    raise InvalidInterface("Interface " + str(eachint.name) +
+                                           " is not supported, and hence cannot be added to the vsan, "
+                                           "supported interface types are 'fc' amd 'port-channel'")
+            try:
+                self.__swobj.config_list(cmdlist)
+            except CLIError as c:
+                if "membership being configured is already configured for the interface" in c.message:
+                    return False, None
+                log.error(c)
+                raise CLIError(cmd, c.message)
 
     def __get_facts(self):
         shvsan = self.__swobj.show("show vsan")
@@ -154,26 +211,6 @@ class Vsan(object):
             return None
 
         return dict(shvsan_req_out)
-
-    def __get_facts_sh_vsan_mem(self):
-        shvsanmem_req_out = {}
-        shvsanmem = self.__swobj.show("show vsan membership")
-
-        # Parse show vsan membership json output
-        try:
-            details = shvsanmem["TABLE_vsan_membership"]["ROW_vsan_membership"]
-
-            if type(details) is dict:
-                members = details['interface']
-            else:
-                members = [eachdetails['interface'] for eachdetails in details]
-            shvsanmem_req_out = {'vsan_interfaces': members}
-            if not shvsanmem_req_out:
-                return None
-        except KeyError:
-            return None
-
-        return shvsanmem_req_out
 
 # TODO: Check vsan range during create/delete/addinterface etc..
 # TODO: Interfaces

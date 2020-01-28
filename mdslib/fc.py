@@ -1,5 +1,5 @@
 from .interface import Interface
-from .constants import SHUTDOWN,NO_SHUTDOWN
+from .constants import SHUTDOWN, NO_SHUTDOWN
 from .nxapikeys import interfacekeys
 import logging
 
@@ -31,7 +31,8 @@ class Fc(Interface):
         cmd = "show interface " + self.name + " transceiver"
         log.debug("Sending the cmd")
         log.debug(cmd)
-        out = self.__swobj.config(cmd)['body']['TABLE_interface_trans']['ROW_interface_trans']['TABLE_calib']['ROW_calib']
+        out = self.__swobj.config(cmd)['body']['TABLE_interface_trans']['ROW_interface_trans']['TABLE_calib'][
+            'ROW_calib']
         if type(out) is list:
             for d in out:
                 result.update(d)

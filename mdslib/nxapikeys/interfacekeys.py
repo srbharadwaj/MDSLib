@@ -1,5 +1,5 @@
-
 # show int brief
+INTERFACE = 'interface'
 INT_FC = "interface_fc"
 INT_VSAN = "vsan_brief"
 INT_ADMIN_MODE = "admin_mode"

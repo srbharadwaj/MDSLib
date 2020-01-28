@@ -3,8 +3,9 @@
 # import pprint
 
 from .context import mdslib
-from .enablelog import ScriptLog,banner
+from .enablelog import ScriptLog, banner
 import pprint
+
 sl = ScriptLog("switch.log")
 log = sl.log
 
@@ -16,7 +17,6 @@ user = 'admin'
 pw = 'nbv!2345'
 ip_address = '10.126.94.104'
 ip_address1 = '10.126.94.121'
-
 p = 8443
 
 # sw104 = Switch(

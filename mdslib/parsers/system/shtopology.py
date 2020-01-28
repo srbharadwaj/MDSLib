@@ -45,11 +45,10 @@ class ShowTopology(object):
         # print(self.parse_data)
 
     def __process_output(self):
-        print("Processing ...")
+        # print("Processing ...")
         vsan = ""
         val = []
         for line in self.__alloutput:
-            # print line
             matchvsan = re.match(self.__pat_for_vsan, line)
             if matchvsan:
                 if vsan != "" and val.__len__() != 0:

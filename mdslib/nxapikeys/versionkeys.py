@@ -1,4 +1,3 @@
-
 # show version
 VER_STR = "sys_ver_str"
 KICK_FILE = "kick_file_name"
