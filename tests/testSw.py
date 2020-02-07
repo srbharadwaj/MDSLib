@@ -11,6 +11,15 @@ def main():
 
     p = 8443
 
+    sw104 = Switch(
+        ip_address=ip_address,
+        username=user,
+        password=pw,
+        connection_type='https',
+        port=p,
+        timeout=30,
+        verify_ssl=False)
+
     sw121 = Switch(
         ip_address=ip_address1,
         username=user,
@@ -20,7 +29,16 @@ def main():
         timeout=30,
         verify_ssl=False)
 
-    sw = sw121
+    sw220 = Switch(
+        ip_address="10.126.94.220",
+        username=user,
+        password=pw,
+        connection_type='https',
+        port=p,
+        timeout=30,
+        verify_ssl=False)
+
+    sw = sw220
     banner("ip, version, model, npv")
     print("switch ip addr is   : " + sw.ipaddr)
     print("switch version is   : " + sw.version)

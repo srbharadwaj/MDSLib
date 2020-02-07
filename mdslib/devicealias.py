@@ -84,10 +84,13 @@ class DeviceAlias(object):
         facts_out = self.__get_facts()
         allentries = facts_out.get('device_alias_entries', None)
         if allentries is None:
+            # Means there are no entries
             return None
         else:
             if type(allentries) is dict:
                 # That means there is only one entry in the database
+                # hence we need to convert allentries to a list, if there are more than
+                # one entry in the database then allentries will not be a dict it will be a list
                 allentries = [allentries]
             for eachentry in allentries:
                 retout[eachentry['dev_alias_name']] = eachentry['pwwn']
@@ -222,6 +225,7 @@ class DeviceAlias(object):
         out = self.__swobj.config(cmd)
         if out is not None:
             if out['msg'].find("Device-alias enhanced zone member present"):
+                log.debug(out)
                 log.error("Device-alias enhanced zone member present")
                 self.__clear_lock_if_enhanced(mode)
                 raise CLIError(cmd, out['msg'])

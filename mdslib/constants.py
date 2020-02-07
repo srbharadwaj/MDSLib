@@ -1,6 +1,7 @@
 PAT_FC = "fc([0-9]+)/([0-9]+)"
 PAT_PC = "port-channel([0-9]+)"
 PAT_FCIP = "fcip([0-9]+)"
+PAT_WWN = "([0-9,a-f]{1,2}:){7}[0-9,a-f]{1,2}"
 ON = "on"
 OFF = "off"
 AUTO = "auto"
@@ -19,4 +20,3 @@ VALID_FCIP_PROFILE_RANGE = range(1, 513)  # 1-512
 SUSPEND = "suspend"
 NO_SUSPEND = "no suspend"
 OUT_OF_SERVICE = "outOfServc"
-VALID_PC_CHANNEL_MODES = [ON, ACTIVE]

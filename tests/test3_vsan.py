@@ -50,10 +50,10 @@ v1 = Vsan(switch=sw, id=1)
 print("Vsan 1 interfaces are..")
 print(v1.interfaces)
 
-# Lets create fc interface object for fc1/11,fc1/12,fc1/13
-fc11 = Fc(switch=sw, name="fc1/11")
-fc12 = Fc(switch=sw, name="fc1/12")
-fc13 = Fc(switch=sw, name="fc1/13")
+# Lets create fc interface object for fc127/11,fc127/12,fc127/13
+fc11 = Fc(switch=sw, name="fc127/11")
+fc12 = Fc(switch=sw, name="fc127/12")
+fc13 = Fc(switch=sw, name="fc127/13")
 v98.add_interfaces([fc11])
 v99.add_interfaces([fc12, fc13])
 

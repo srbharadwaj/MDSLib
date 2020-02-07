@@ -1,5 +1,5 @@
 from .interface import Interface
-from .constants import VALID_PC_CHANNEL_MODES, ACTIVE, PAT_FC, PAT_PC, VALID_PC_RANGE
+from .constants import ON,ACTIVE, PAT_FC, PAT_PC, VALID_PC_RANGE
 from .fc import Fc
 from .nxapikeys import portchanelkeys
 import logging
@@ -10,8 +10,7 @@ log = logging.getLogger(__name__)
 
 class InvalidChannelMode(Exception):
     def __init__(self, value):
-        Exception.__init__(self, "Invalid channel mode (" + str(value) + "), channel mode must be one of (" + ', '.join(
-            VALID_PC_CHANNEL_MODES) + ")")
+        Exception.__init__(self, "Invalid channel mode (" + str(value) + "), Valid values are: " + ON + "," + ACTIVE)
 
 
 class PortChannelNotPresent(Exception):
@@ -126,15 +125,14 @@ class PortChannel(Interface):
             raise PortChannelNotPresent(
                 "Port channel " + str(self._id) + " is not present on the switch, please create the PC first")
         mode = mode.lower()
-        if mode not in VALID_PC_CHANNEL_MODES:
-            raise InvalidChannelMode(mode)
+        cmd = "interface port-channel " + str(self._id)
+        if mode == ACTIVE:
+            cmd = cmd + " ; channel mode active"
+        elif mode == ON:
+            cmd = cmd + " ; no channel mode active"
         else:
-            cmd = "interface port-channel " + str(self._id)
-            if mode == ACTIVE:
-                cmd = cmd + " ; channel mode active"
-            else:
-                cmd = cmd + " ; no channel mode active"
-            self.__swobj.config(cmd)
+            raise InvalidChannelMode(mode)
+        self.__swobj.config(cmd)
 
     @property
     def members(self):
@@ -160,10 +158,11 @@ class PortChannel(Interface):
             fcmatch = re.match(PAT_FC, eachintname)
             if fcmatch:
                 intobj = Fc(switch=self.__swobj, name=eachintname)
+                retelements.append(intobj)
             else:
                 log.error(
                     "Unsupported interface " + eachintname + " , hence skipping it, this type of interface is not supported yet")
-            retelements.append(intobj)
+
         return retelements
 
     def create(self):

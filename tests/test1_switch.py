@@ -2,8 +2,8 @@
 # from tests.enablelog import banner
 # import pprint
 
-from .context import mdslib
-from .enablelog import ScriptLog, banner
+#from .context import mdslib
+from tests.enablelog import ScriptLog, banner
 import pprint
 
 sl = ScriptLog("switch.log")
@@ -89,7 +89,7 @@ banner("end")
 #
 # from mdslib.fc import Fc
 #
-# i = Fc(sw,"fc1/1")
+# i = Fc(sw,"fc127/1")
 # print(i.name)
 # print(i.status)
 # print(i.out_of_service)
@@ -144,7 +144,7 @@ banner("end")
 # #     print("Creation of Vsan failed")
 # #     print(errstr)
 # #     exit()
-# # v123.add_interfaces(['fc1/8','fc1/9','port-channel 49'])
+# # v123.add_interfaces(['fc127/8','fc127/9','port-channel 49'])
 # # time.sleep(2)
 # # print(v123.__get_facts())
 
@@ -165,7 +165,7 @@ print(zobj.zone_names)
 print(zobj.__get_facts())
 # err,errstr = zobj.delete(name="Zone1")
 # print(zobj.__get_facts())
-#zobj.add_members(members=['fc1/6','fc1/8'])
+#zobj.add_members(members=['fc127/6','fc127/8'])
 
 
 banner("Zoneset section ")
@@ -189,11 +189,11 @@ FC Topology for VSAN 1 :
 --------------------------------------------------------------------------------
        Interface  Peer Domain Peer Interface     Peer IP Address(Switch Name)
 --------------------------------------------------------------------------------
-            fc1/7 0xe7(231)          fc13/19  10.126.94.175(sw175-Luke-18slot)
-           fc1/46 0xe7(231)          fc18/13  10.126.94.175(sw175-Luke-18slot)
+            fc127/7 0xe7(231)          fc13/19  10.126.94.175(sw175-Luke-18slot)
+           fc127/46 0xe7(231)          fc18/13  10.126.94.175(sw175-Luke-18slot)
             fc6/1 0xe7(231)          fc18/45  10.126.94.175(sw175-Luke-18slot)
             fc6/3 0xe7(231)          fc13/33  10.126.94.175(sw175-Luke-18slot)
-           fc6/13 0x80(128)           fc1/57  10.126.94.121(sw-L16-Yushan-121)
+           fc6/13 0x80(128)           fc127/57  10.126.94.121(sw-L16-Yushan-121)
            fc6/31 0xe7(231)           fc13/3  10.126.94.175(sw175-Luke-18slot)
            fc6/41 0xe7(231)          fc17/41  10.126.94.175(sw175-Luke-18slot)
            fc6/42 0xe7(231)          fc17/42  10.126.94.175(sw175-Luke-18slot)
@@ -203,11 +203,11 @@ FC Topology for VSAN 10 :
 --------------------------------------------------------------------------------
        Interface  Peer Domain Peer Interface     Peer IP Address(Switch Name)
 --------------------------------------------------------------------------------
-            fc1/7 0x9f(159)          fc13/19  10.126.94.175(sw175-Luke-18slot)
-           fc1/46 0x9f(159)          fc18/13  10.126.94.175(sw175-Luke-18slot)
+            fc127/7 0x9f(159)          fc13/19  10.126.94.175(sw175-Luke-18slot)
+           fc127/46 0x9f(159)          fc18/13  10.126.94.175(sw175-Luke-18slot)
             fc6/1 0x9f(159)          fc18/45  10.126.94.175(sw175-Luke-18slot)
             fc6/3 0x9f(159)          fc13/33  10.126.94.175(sw175-Luke-18slot)
-           fc6/13  0x60(96)           fc1/57  10.126.94.121(sw-L16-Yushan-121)
+           fc6/13  0x60(96)           fc127/57  10.126.94.121(sw-L16-Yushan-121)
            fc6/31 0x9f(159)           fc13/3  10.126.94.175(sw175-Luke-18slot)
            fc6/41 0x9f(159)          fc17/41  10.126.94.175(sw175-Luke-18slot)
            fc6/42 0x9f(159)          fc17/42  10.126.94.175(sw175-Luke-18slot)
@@ -217,11 +217,11 @@ FC Topology for VSAN 11 :
 --------------------------------------------------------------------------------
        Interface  Peer Domain Peer Interface     Peer IP Address(Switch Name)
 --------------------------------------------------------------------------------
-            fc1/7  0x47(71)          fc13/19  10.126.94.175(sw175-Luke-18slot)
-           fc1/46  0x47(71)          fc18/13  10.126.94.175(sw175-Luke-18slot)
+            fc127/7  0x47(71)          fc13/19  10.126.94.175(sw175-Luke-18slot)
+           fc127/46  0x47(71)          fc18/13  10.126.94.175(sw175-Luke-18slot)
             fc6/1  0x47(71)          fc18/45  10.126.94.175(sw175-Luke-18slot)
             fc6/3  0x47(71)          fc13/33  10.126.94.175(sw175-Luke-18slot)
-           fc6/13 0x92(146)           fc1/57  10.126.94.121(sw-L16-Yushan-121)
+           fc6/13 0x92(146)           fc127/57  10.126.94.121(sw-L16-Yushan-121)
            fc6/31  0x47(71)           fc13/3  10.126.94.175(sw175-Luke-18slot)
            fc6/41  0x47(71)          fc17/41  10.126.94.175(sw175-Luke-18slot)
            fc6/42  0x47(71)          fc17/42  10.126.94.175(sw175-Luke-18slot)
@@ -231,8 +231,8 @@ FC Topology for VSAN 20 :
 --------------------------------------------------------------------------------
        Interface  Peer Domain Peer Interface     Peer IP Address(Switch Name)
 --------------------------------------------------------------------------------
-            fc1/7 0xee(238)          fc13/19  10.126.94.175(sw175-Luke-18slot)
-           fc1/46 0xee(238)          fc18/13  10.126.94.175(sw175-Luke-18slot)
+            fc127/7 0xee(238)          fc13/19  10.126.94.175(sw175-Luke-18slot)
+           fc127/46 0xee(238)          fc18/13  10.126.94.175(sw175-Luke-18slot)
             fc6/1 0xee(238)          fc18/45  10.126.94.175(sw175-Luke-18slot)
             fc6/3 0xee(238)          fc13/33  10.126.94.175(sw175-Luke-18slot)
            fc6/31 0xee(238)           fc13/3  10.126.94.175(sw175-Luke-18slot)
@@ -244,11 +244,11 @@ FC Topology for VSAN 121 :
 --------------------------------------------------------------------------------
        Interface  Peer Domain Peer Interface     Peer IP Address(Switch Name)
 --------------------------------------------------------------------------------
-            fc1/7 0xde(222)          fc13/19  10.126.94.175(sw175-Luke-18slot)
-           fc1/46 0xde(222)          fc18/13  10.126.94.175(sw175-Luke-18slot)
+            fc127/7 0xde(222)          fc13/19  10.126.94.175(sw175-Luke-18slot)
+           fc127/46 0xde(222)          fc18/13  10.126.94.175(sw175-Luke-18slot)
             fc6/1 0xde(222)          fc18/45  10.126.94.175(sw175-Luke-18slot)
             fc6/3 0xde(222)          fc13/33  10.126.94.175(sw175-Luke-18slot)
-           fc6/13 0xca(202)           fc1/57  10.126.94.121(sw-L16-Yushan-121)
+           fc6/13 0xca(202)           fc127/57  10.126.94.121(sw-L16-Yushan-121)
            fc6/31 0xde(222)           fc13/3  10.126.94.175(sw175-Luke-18slot)
            fc6/41 0xde(222)          fc17/41  10.126.94.175(sw175-Luke-18slot)
            fc6/42 0xde(222)          fc17/42  10.126.94.175(sw175-Luke-18slot)
@@ -257,11 +257,11 @@ FC Topology for VSAN 221 :
 --------------------------------------------------------------------------------
        Interface  Peer Domain Peer Interface     Peer IP Address(Switch Name)
 --------------------------------------------------------------------------------
-            fc1/7 0xa9(169)          fc13/19  10.126.94.175(sw175-Luke-18slot)
-           fc1/46 0xa9(169)          fc18/13  10.126.94.175(sw175-Luke-18slot)
+            fc127/7 0xa9(169)          fc13/19  10.126.94.175(sw175-Luke-18slot)
+           fc127/46 0xa9(169)          fc18/13  10.126.94.175(sw175-Luke-18slot)
             fc6/1 0xa9(169)          fc18/45  10.126.94.175(sw175-Luke-18slot)
             fc6/3 0xa9(169)          fc13/33  10.126.94.175(sw175-Luke-18slot)
-           fc6/13 0x8e(142)           fc1/57  10.126.94.121(sw-L16-Yushan-121)
+           fc6/13 0x8e(142)           fc127/57  10.126.94.121(sw-L16-Yushan-121)
            fc6/31 0xa9(169)           fc13/3  10.126.94.175(sw175-Luke-18slot)
            fc6/41 0xa9(169)          fc17/41  10.126.94.175(sw175-Luke-18slot)
            fc6/42 0xa9(169)          fc17/42  10.126.94.175(sw175-Luke-18slot)
@@ -270,11 +270,11 @@ FC Topology for VSAN 222 :
 --------------------------------------------------------------------------------
        Interface  Peer Domain Peer Interface     Peer IP Address(Switch Name)
 --------------------------------------------------------------------------------
-            fc1/7 0xc8(200)          fc13/19  10.126.94.175(sw175-Luke-18slot)
-           fc1/46 0xc8(200)          fc18/13  10.126.94.175(sw175-Luke-18slot)
+            fc127/7 0xc8(200)          fc13/19  10.126.94.175(sw175-Luke-18slot)
+           fc127/46 0xc8(200)          fc18/13  10.126.94.175(sw175-Luke-18slot)
             fc6/1 0xc8(200)          fc18/45  10.126.94.175(sw175-Luke-18slot)
             fc6/3 0xc8(200)          fc13/33  10.126.94.175(sw175-Luke-18slot)
-           fc6/13 0x85(133)           fc1/57  10.126.94.121(sw-L16-Yushan-121)
+           fc6/13 0x85(133)           fc127/57  10.126.94.121(sw-L16-Yushan-121)
            fc6/31 0xc8(200)           fc13/3  10.126.94.175(sw175-Luke-18slot)
            fc6/41 0xc8(200)          fc17/41  10.126.94.175(sw175-Luke-18slot)
            fc6/42 0xc8(200)          fc17/42  10.126.94.175(sw175-Luke-18slot)
@@ -283,8 +283,8 @@ FC Topology for VSAN 666 :
 --------------------------------------------------------------------------------
        Interface  Peer Domain Peer Interface     Peer IP Address(Switch Name)
 --------------------------------------------------------------------------------
-            fc1/7 0x6a(106)          fc13/19  10.126.94.175(sw175-Luke-18slot)
-           fc1/46 0x6a(106)          fc18/13  10.126.94.175(sw175-Luke-18slot)
+            fc127/7 0x6a(106)          fc13/19  10.126.94.175(sw175-Luke-18slot)
+           fc127/46 0x6a(106)          fc18/13  10.126.94.175(sw175-Luke-18slot)
             fc6/1 0x6a(106)          fc18/45  10.126.94.175(sw175-Luke-18slot)
             fc6/3 0x6a(106)          fc13/33  10.126.94.175(sw175-Luke-18slot)
            fc6/31 0x6a(106)           fc13/3  10.126.94.175(sw175-Luke-18slot)

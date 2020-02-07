@@ -2,10 +2,11 @@ __author__ = 'Suhas Bharadwaj (subharad)'
 
 import logging
 import requests
-from mdslib.connection_manager.connect_nxapi import ConnectNxapi
-from mdslib.connection_manager.errors import CLIError
-from mdslib.parsers.system.shtopology import ShowTopology
+from .connection_manager.connect_nxapi import ConnectNxapi
+from .connection_manager.errors import CLIError
+from .parsers.system.shtopology import ShowTopology
 from .module import Module
+from .nxapikeys import versionkeys
 import time
 
 log = logging.getLogger(__name__)
@@ -82,7 +83,7 @@ class Switch(object):
 
     @property
     def name(self):
-        return self.show("show switchname", raw_text=True)
+        return self.show("show switchname", raw_text=True).strip()
 
     @name.setter
     def name(self, swname):
@@ -97,7 +98,7 @@ class Switch(object):
         out = self.show("show version")
         if not out:
             return None
-        fullversion = out['sys_ver_str']
+        fullversion = out[versionkeys.VER_STR]
         ver = fullversion.split()[0]
         return ver
 
@@ -106,7 +107,7 @@ class Switch(object):
         out = self.show("show version")
         if not out:
             return None
-        return out['chassis_id']
+        return out[versionkeys.CHASSIS_ID]
 
     @property
     def form_factor(self):

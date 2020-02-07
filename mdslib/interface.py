@@ -64,7 +64,7 @@ class Interface(object):
     def mode(self):
         out = self.__parse_show_int_brief()
         if out is not None:
-            return out[interfacekeys.INT_MODE]
+            return out[interfacekeys.INT_OPER_MODE]
         return None
 
     @mode.setter
@@ -81,7 +81,7 @@ class Interface(object):
     def speed(self):
         out = self.__parse_show_int_brief()
         if out is not None:
-            return out[interfacekeys.INT_SPEED]
+            return out[interfacekeys.INT_OPER_SPEED]
         return None
 
     @speed.setter
@@ -156,7 +156,7 @@ class Interface(object):
         if fcmatch:
             out = out['TABLE_interface_brief_fc']['ROW_interface_brief_fc']
             for eachout in out:
-                if eachout['interface_fc'] == self.name:
+                if eachout[interfacekeys.INTERFACE] == self.name:
                     return eachout
         elif pcmatch:
             # Need to check if "sh int brief" has PC info
@@ -169,6 +169,6 @@ class Interface(object):
             else:
                 outlist = out
             for eachout in outlist:
-                if eachout['interface'] == self.name:
+                if eachout[interfacekeys.INTERFACE] == self.name:
                     return eachout
         return None

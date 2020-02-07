@@ -15,7 +15,7 @@ import time
 # Lets set the basic switch inputs
 user = 'admin'
 pw = 'nbv!2345'
-ipaddr = '10.126.94.121'
+ipaddr = '10.126.94.109'
 port = 8443
 
 # ######################################################
@@ -36,7 +36,7 @@ print("name  : " + sw.name)
 print("ver   : " + sw.version)
 print("model : " + sw.model)
 print(dir(sw))
-time.sleep(123456)
+time.sleep(1)
 # #######################################
 # Output of the above prints are as follows
 # #######################################
@@ -74,8 +74,8 @@ print("name : " + sw.name)
 # ######################################################
 # ############# FC Interface SECTION ###################
 
-# Lets create an FC interface object for fc1/1
-fcint = Fc(sw, 'fc1/1')
+# Lets create an FC interface object for fc127/1
+fcint = Fc(sw, 'fc127/1')
 
 # Get basic information of this FC interface
 print("name : " + fcint.name)
@@ -87,7 +87,7 @@ print("status : " + fcint.status)
 # #######################################
 # Output of the above prints are as follows
 # #######################################
-# name : fc1/1
+# name : fc127/1
 # mode : TE
 # speed : 32
 # trunk : on

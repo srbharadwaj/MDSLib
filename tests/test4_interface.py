@@ -51,13 +51,13 @@ sw = sw121
 from mdslib.fc import Fc
 from mdslib.portchannel import PortChannel
 
-fobj = Fc(sw, name="fc1/57")
+fobj = Fc(sw, name="fc127/57")
 print(fobj.transceiver_details)
-fobj1 = Fc(sw, name="fc1/4")
+fobj1 = Fc(sw, name="fc127/4")
 print(fobj1.transceiver_details)
 print(fobj1.counters)
 
-banner("Get info about interface fc1/57")
+banner("Get info about interface fc127/57")
 print("Desc: " + fobj.description)
 print("Mode: " + fobj.mode)
 print("Name: " + fobj.name)
@@ -100,7 +100,7 @@ print("Trunk: " + fobj.trunk)
 # #pprint.pprint(pc22_218.counters)
 # pprint.pprint(pc22.members)
 #
-# fc11 = Fc(sw,name="fc1/53")
+# fc11 = Fc(sw,name="fc127/53")
 # pc22.add_members([fc11])
 # fc11.status = constants.NO_SHUTDOWN
 # pprint.pprint(pc22.members)

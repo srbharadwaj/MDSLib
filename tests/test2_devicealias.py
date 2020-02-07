@@ -1,5 +1,4 @@
-from tests.enablelog import ScriptLog
-
+from tests.enablelog import ScriptLog, banner
 sl = ScriptLog("switch.log")
 # sl.consoleHandler.setLevel(logging.DEBUG)
 log = sl.log
@@ -11,7 +10,7 @@ from mdslib.switch import Switch
 user = 'admin'
 pw = 'nbv!2345'
 ip_address = '10.126.94.104'
-ip_address1 = '10.126.94.121'
+ip_address1 = '10.126.94.109'
 
 p = 8443
 
@@ -24,7 +23,7 @@ p = 8443
 #     timeout=30,
 #     verify_ssl=False)
 
-sw121 = Switch(
+sw = Switch(
     ip_address=ip_address1,
     username=user,
     password=pw,
@@ -33,11 +32,11 @@ sw121 = Switch(
     timeout=30,
     verify_ssl=False)
 
-sw = sw121
 
 from mdslib.devicealias import DeviceAlias
 from mdslib import constants
 
+banner(sw.name)
 d = DeviceAlias(sw)
 
 print("Check if invalid mode raises exception")
@@ -86,6 +85,18 @@ print("Device alias mode :          " + d.mode)
 print("Device alias distribution :  " + str(d.distribute))
 print("Device alias locked? :  " + str(d.locked))
 print("Device alias entries :  " + str(d.database))
+
+d.distribute =True
+print("Device alias mode :          " + d.mode)
+print("Device alias distribution :  " + str(d.distribute))
+print("Device alias locked? :  " + str(d.locked))
+print("Device alias entries :  " + str(d.database))
+
+
+newdapairs = {'t123': '60:66:61:01:0e:00:01:ff',
+              'danewtest': '60:66:61:01:0e:00:01:fe'}
+# Pass the dict to the create api
+d.create(newdapairs)
 
 # print("Clear device alias database...")
 # d.clear_database()
