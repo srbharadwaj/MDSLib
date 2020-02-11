@@ -207,7 +207,7 @@ class PortChannel(Interface):
             # There is atleast one PC in the switch
             pcdb = out['TABLE_port_channel_database']['ROW_port_channel_database']
             if type(pcdb) is dict:
-                # There is only PC in the switch
+                # There is only one PC in the switch
                 pcdblist = [pcdb]
             else:
                 # There are multiple PC in the switch

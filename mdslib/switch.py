@@ -6,8 +6,12 @@ from .connection_manager.connect_nxapi import ConnectNxapi
 from .connection_manager.errors import CLIError
 from .parsers.system.shtopology import ShowTopology
 from .module import Module
-from .nxapikeys import versionkeys
+from .fc import Fc
+from .portchannel import PortChannel
+from .nxapikeys import versionkeys,interfacekeys
+from . import constants
 import time
+import re
 
 log = logging.getLogger(__name__)
 
@@ -111,11 +115,27 @@ class Switch(object):
 
     @property
     def form_factor(self):
-        raise NotImplementedError
+        chassisid = self.model
+        if chassisid is not None:
+            pat = "MDS\s+(.*)\((.*)\)\s+Chassis"
+            match = re.match(pat,chassisid)
+            if match:
+                ff = match.group(1).strip()
+                type = match.group(2).strip()
+                return ff
+        return None
 
     @property
     def type(self):
-        raise NotImplementedError
+        chassisid = self.model
+        if chassisid is not None:
+            pat = "MDS\s+(.*)\((.*)\)\s+Chassis"
+            match = re.match(pat, chassisid)
+            if match:
+                ff = match.group(1).strip()
+                type = match.group(2).strip()
+                return type
+        return None
 
     @property
     def modules(self):
@@ -135,15 +155,76 @@ class Switch(object):
 
     @property
     def image_string(self):
-        raise NotImplementedError
+        ff = self.form_factor
+        if ff in ["9706","9710","9718"]:
+            mods = self.modules
+            for eachmod in mods:
+                if "Supervisor Module-3" in eachmod.module_type:
+                    return "m9700-sf3ek9"
+                elif "Supervisor Module-4" in eachmod.module_type:
+                    return "m9700-sf4ek9"
+            return None
+        elif "9132T" in ff:
+            return "m9100-s6ek9"
+        elif "9148S" in ff:
+            return "m9100-s5ek9"
+        elif "9148T" in ff:
+            return "m9148-s6ek9"
+        elif "9250i" in ff:
+            return "m9250-s5ek9"
+        elif "9396S" in ff:
+            return "m9300-s1ek9"
+        elif "9396T" in ff:
+            return "m9300-s2ek9"
+        else:
+            return None
 
     @property
     def kickstart_image(self):
-        raise NotImplementedError
+        out = self.show("show version")
+        if not out:
+            return None
+        return out[versionkeys.KICK_FILE]
 
     @property
     def system_image(self):
-        raise NotImplementedError
+        out = self.show("show version")
+        if not out:
+            return None
+        return out[versionkeys.ISAN_FILE]
+
+    @property
+    def interfaces(self):
+        retlist = []
+        cmd = "show interface brief"
+        out = self.show(cmd)
+        log.debug(out)
+
+        # Get FC related data
+        fcout = out.get('TABLE_interface_brief_fc',None)
+        if fcout is not None:
+            allfc = fcout['ROW_interface_brief_fc']
+            if type(allfc) is dict:
+                allfc = [allfc]
+            for eacfc in allfc:
+                fcname = eacfc[interfacekeys.INTERFACE]
+                fcobj = Fc(switch=self,name=fcname)
+                retlist.append(fcobj)
+
+        # Get PC related data
+        pcout = out.get('TABLE_interface_brief_portchannel', None)
+        if pcout is not None:
+            allpc = pcout['ROW_interface_brief_portchannel']
+            if type(allpc) is dict:
+                allpc = [allpc]
+            for eacpc in allpc:
+                pcname = eacpc[interfacekeys.INTERFACE]
+                match = re.match(constants.PAT_PC,pcname)
+                if match:
+                    pcid = int(match.group(1))
+                    pcobj = PortChannel(switch=self,id=pcid)
+                    retlist.append(pcobj)
+        return retlist
 
     def __log_info_about_url_msgfmt_cmdtype(self):
         """

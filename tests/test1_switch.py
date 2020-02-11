@@ -19,14 +19,14 @@ ip_address = '10.126.94.104'
 ip_address1 = '10.126.94.121'
 p = 8443
 
-# sw104 = Switch(
-#     ip_address=ip_address,
-#     username=user,
-#     password=pw,
-#     connection_type='https',
-#     port=p,
-#     timeout=30,
-#     verify_ssl=False)
+sw104 = Switch(
+    ip_address=ip_address,
+    username=user,
+    password=pw,
+    connection_type='https',
+    port=p,
+    timeout=30,
+    verify_ssl=False)
 
 sw121 = Switch(
     ip_address=ip_address1,
@@ -37,12 +37,20 @@ sw121 = Switch(
     timeout=30,
     verify_ssl=False)
 
-sw = sw121
+sw = sw104
 banner("ip, version, model, npv")
 print("switch ip addr is   : " + sw.ipaddr)
 print("switch version is   : " + sw.version)
 print("switch model is     : " + sw.model)
 print("switch npv state is : " + str(sw.npv))
+print("switch form_factor : " + str(sw.form_factor))
+print("switch type is : " + str(sw.type))
+print("switch kick img is : " + str(sw.kickstart_image))
+print("switch sys img is : " + str(sw.system_image))
+print("switch img str is : " + str(sw.image_string))
+allint = sw.interfaces
+for eachint in allint:
+    print(eachint.name)
 banner("end")
 
 banner("switch name ")
@@ -53,7 +61,7 @@ sw.name = 'swTest'
 newname = sw.name
 print("new switch name is  : " + newname)
 print("### Change switch name back to old one ")
-sw.name = 'sw-L16-Yushan-121'
+sw.name = oldswname.replace(".cisco.com", "")
 print("switch name is  : " + sw.name)
 banner("end")
 
