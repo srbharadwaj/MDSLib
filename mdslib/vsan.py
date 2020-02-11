@@ -158,8 +158,8 @@ class Vsan(object):
                   "no vsan " + str(self._id)
             self.__swobj.config(cmd)
         except CLIError as c:
-            cmd = "no terminal dont-ask"
-            self.__swobj.config(cmd)
+            cmddontask = "no terminal dont-ask"
+            self.__swobj.config(cmddontask)
             log.error(c)
             raise CLIError(cmd, c.message)
         finally:
