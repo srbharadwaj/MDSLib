@@ -5,8 +5,6 @@ import threading
 from functools import wraps
 
 from mdslib.switch import Switch
-from mdslib.parsers.system.shtopology import ShowTopology
-from mdslib.connection_manager.errors import CLIError
 
 log = logging.getLogger(__name__)
 

@@ -1,39 +1,11 @@
-from .nxapikeys import interfacekeys
-from .constants import *
 import logging
 import re
 
+from .constants import VALID_MODE, VALID_SPEED, VALID_TRUNK_MODE, VALID_STATUS, PAT_PC, PAT_FC
+from .nxapikeys import interfacekeys
+from .utility.allexceptions import InvalidSpeed, InvalidMode, InvalidStatus, InvalidTrunkMode
+
 log = logging.getLogger(__name__)
-
-VALID_STATUS = [SHUTDOWN, NO_SHUTDOWN]
-VALID_TRUNK_MODE = [AUTO, ON, OFF]
-VALID_SPEED = [AUTO, 1000, 2000, 4000, 8000, 16000, 32000]
-VALID_MODE = [AUTO, 'E', 'F', 'NP']
-
-
-class InvalidStatus(Exception):
-    def __init__(self, value):
-        Exception.__init__(self, "Invalid status (" + str(value) + "), status must be one of (" + ', '.join(
-            VALID_STATUS) + ")")
-
-
-class InvalidTrunkMode(Exception):
-    def __init__(self, value):
-        Exception.__init__(self, "Invalid trunk mode (" + str(value) + "), trunk mode must be one of (" + ', '.join(
-            VALID_TRUNK_MODE) + ")")
-
-
-class InvalidSpeed(Exception):
-    def __init__(self, value):
-        Exception.__init__(self,
-                           "Invalid speed (" + str(value) + "), speed must be one of (" + ', '.join(
-                               str(x) for x in VALID_SPEED) + ")")
-
-
-class InvalidMode(Exception):
-    def __init__(self, value):
-        Exception.__init__(self,
-                           "Invalid mode (" + str(value) + "), mode must be one of (" + ', '.join(VALID_MODE) + ")")
 
 
 class Interface(object):
@@ -41,10 +13,13 @@ class Interface(object):
         self.__swobj = switch
         self.name = name
 
+    # Interface is the base class for Fc and PortChannel.
+    # So you cannot instantiate the base class(Interface), you have to instantiate the derived/child class (Fc,PortChannel)
     def __new__(cls, *args, **kwargs):
         if cls is Interface:
             raise TypeError(
-                "Interface class(Base class) cannot be instantiated, please use specific interface classes(Child class) like Fc,PortChannel etc..")
+                "Interface class is a Base class and cannot be instantiated, "
+                "please use specific interface classes(Child/Derived class) like Fc,PortChannel etc.. to instantiate")
         return object.__new__(cls)
 
     @property
@@ -70,7 +45,7 @@ class Interface(object):
     @mode.setter
     def mode(self, value):
         if value not in VALID_MODE:
-            raise InvalidMode(value)
+            raise InvalidMode("Invalid mode (" + str(value) + "), mode must be one of (" + ', '.join(VALID_MODE) + ")")
         else:
             cmd = "interface " + self.name + " ; switchport mode  " + value
             log.debug("Sending the cmd: " + cmd)
@@ -87,7 +62,8 @@ class Interface(object):
     @speed.setter
     def speed(self, value):
         if value not in VALID_SPEED:
-            raise InvalidSpeed(value)
+            raise InvalidSpeed("Invalid speed (" + str(value) + "), speed must be one of (" + ', '.join(
+                str(x) for x in VALID_SPEED) + ")")
         else:
             cmd = "interface " + self.name + " ; switchport speed  " + str(value)
             log.debug("Sending the cmd: " + cmd)
@@ -104,7 +80,8 @@ class Interface(object):
     @trunk.setter
     def trunk(self, value):
         if value not in VALID_TRUNK_MODE:
-            raise InvalidTrunkMode(value)
+            raise InvalidTrunkMode("Invalid trunk mode (" + str(value) + "), trunk mode must be one of (" + ', '.join(
+                VALID_TRUNK_MODE) + ")")
         else:
             cmd = "interface " + self.name + " ; switchport trunk mode  " + value
             log.debug("Sending the cmd: " + cmd)
@@ -121,7 +98,8 @@ class Interface(object):
     @status.setter
     def status(self, value):
         if value not in VALID_STATUS:
-            raise InvalidStatus(value)
+            raise InvalidStatus("Invalid status (" + str(value) + "), status must be one of (" + ', '.join(
+                VALID_STATUS) + ")")
         else:
             cmd = "interface " + self.name + " ; " + value
             log.debug("Sending the cmd: " + cmd)

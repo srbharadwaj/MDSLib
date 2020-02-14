@@ -1,6 +1,5 @@
 from tests.enablelog import ScriptLog
 from tests.enablelog import banner
-import pprint
 
 sl = ScriptLog("switch.log")
 log = sl.log
@@ -34,11 +33,10 @@ sw121 = Switch(
     timeout=30,
     verify_ssl=False)
 
-sw = sw104
+sw = sw121
 
-from mdslib import zone, vsan
-from mdslib.constants import BASIC, ENHANCED, PERMIT, DENY
-#
+from mdslib import zone, vsan, fc
+
 # v1 = vsan.Vsan(sw, 1)
 # z1 = zone.Zone(sw, v1, "zonejdsu")
 # print("Zone name is : " + z1.name)
@@ -122,10 +120,11 @@ from mdslib.constants import BASIC, ENHANCED, PERMIT, DENY
 #
 
 
-
 banner("Checking a new vsan's zone")
-v = vsan.Vsan(sw,id=456)
+v = vsan.Vsan(sw, id=456)
 v.create()
+int12 = fc.Fc(sw, "fc1/2")
+int13 = fc.Fc(sw, "fc1/3")
 z1 = zone.Zone(sw, v, "zonetemp")
 if z1.name is None:
     print("Zone name is None")
@@ -143,20 +142,27 @@ print("Zone smartzone is : " + z1.smart_zone)
 z1.smart_zone = False
 print("Zone smartzone is : " + z1.smart_zone)
 
-#Create zone
+# Create zone
 z1.create()
+z1.add_members([int12, int13, "somename", "11:22:33:44:55:66:77:88"])
+print("Zone members are : ")
+print(z1.members)
+z1.remove_members([int12, "somename", "11:22:33:44:55:66:77:88"])
+print("Zone members are : ")
+print(z1.members)
+
 if z1.name is None:
-    print("Zone name is None")
+    print("ERROR!!! Zone name is None, when it should not be none")
 else:
     print("Zone name is " + z1.name)
 print("Zone vsan obj is : " + str(z1.vsan))
 
-#Delete zone
+# Delete zone
 z1.delete()
 if z1.name is None:
     print("Zone name is None")
 else:
-    print("Zone name is " + z1.name)
+    print("ERROR!!! zone name should be none but Zone name is " + z1.name)
 print("Zone vsan obj is : " + str(z1.vsan))
 
 v.delete()

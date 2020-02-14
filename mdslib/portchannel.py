@@ -1,88 +1,13 @@
-from .interface import Interface
-from .constants import ON,ACTIVE, PAT_FC, PAT_PC, VALID_PC_RANGE
-from .fc import Fc
-from .nxapikeys import portchanelkeys
 import logging
 import re
 
+from .constants import ON, ACTIVE, PAT_FC, PAT_PC, VALID_PC_RANGE
+from .fc import Fc
+from .interface import Interface
+from .nxapikeys import portchanelkeys
+from .utility.allexceptions import PortChannelNotPresent, InvalidPortChannelRange, InvalidChannelMode
+
 log = logging.getLogger(__name__)
-
-
-class InvalidChannelMode(Exception):
-    def __init__(self, value):
-        Exception.__init__(self, "Invalid channel mode (" + str(value) + "), Valid values are: " + ON + "," + ACTIVE)
-
-
-class PortChannelNotPresent(Exception):
-    """
-
-    """
-
-    def __init__(self, message):
-        """
-
-        Args:
-            message:
-        """
-        self.message = message.strip()
-
-    def __repr__(self):
-        """
-
-        Returns:
-
-        """
-        return '%s: %s' % (self.__class__.__name__, self.message)
-
-    __str__ = __repr__
-
-
-class InvalidPortChannelRange(Exception):
-    """
-
-    """
-
-    def __init__(self, message):
-        """
-
-        Args:
-            message:
-        """
-        self.message = message.strip()
-
-    def __repr__(self):
-        """
-
-        Returns:
-
-        """
-        return '%s: %s' % (self.__class__.__name__, self.message)
-
-    __str__ = __repr__
-
-
-class InvalidInterface(Exception):
-    """
-
-    """
-
-    def __init__(self, message):
-        """
-
-        Args:
-            message:
-        """
-        self.message = message.strip()
-
-    def __repr__(self):
-        """
-
-        Returns:
-
-        """
-        return '%s: %s' % (self.__class__.__name__, self.message)
-
-    __str__ = __repr__
 
 
 class PortChannel(Interface):
@@ -131,7 +56,7 @@ class PortChannel(Interface):
         elif mode == ON:
             cmd = cmd + " ; no channel mode active"
         else:
-            raise InvalidChannelMode(mode)
+            raise InvalidChannelMode("Invalid channel mode (" + str(mode) + "), Valid values are: " + ON + "," + ACTIVE)
         self.__swobj.config(cmd)
 
     @property
@@ -153,16 +78,15 @@ class PortChannel(Interface):
                 # get the one of the member in the port-channel and return its channel mode
                 for eachmem in allmem:
                     allintnames.append(eachmem[portchanelkeys.PORT])
-        retelements = []
+        retelements = {}
         for eachintname in allintnames:
             fcmatch = re.match(PAT_FC, eachintname)
             if fcmatch:
                 intobj = Fc(switch=self.__swobj, name=eachintname)
-                retelements.append(intobj)
+                retelements[eachintname] = intobj
             else:
                 log.error(
                     "Unsupported interface " + eachintname + " , hence skipping it, this type of interface is not supported yet")
-
         return retelements
 
     def create(self):

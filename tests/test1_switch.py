@@ -2,9 +2,8 @@
 # from tests.enablelog import banner
 # import pprint
 
-#from .context import mdslib
+# from .context import mdslib
 from tests.enablelog import ScriptLog, banner
-import pprint
 
 sl = ScriptLog("switch.log")
 log = sl.log
@@ -51,6 +50,7 @@ print("switch img str is : " + str(sw.image_string))
 allint = sw.interfaces
 for eachint in allint:
     print(eachint.name)
+print(sw.vsans)
 banner("end")
 
 banner("switch name ")

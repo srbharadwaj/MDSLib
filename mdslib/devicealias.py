@@ -1,32 +1,10 @@
 import logging
+
 from .connection_manager.errors import CLIError
-from . import constants
+from .constants import ENHANCED, BASIC
+from .utility.allexceptions import InvalidMode
 
 log = logging.getLogger(__name__)
-
-
-class InvalidArgument(Exception):
-    """
-
-    """
-
-    def __init__(self, message):
-        """
-
-        Args:
-            message:
-        """
-        self.message = message.strip()
-
-    def __repr__(self):
-        """
-
-        Returns:
-
-        """
-        return '%s: %s' % (self.__class__.__name__, self.message)
-
-    __str__ = __repr__
 
 
 class DeviceAlias(object):
@@ -41,13 +19,13 @@ class DeviceAlias(object):
     @mode.setter
     def mode(self, mode):
         log.debug("Setting device alias mode to " + mode)
-        if mode.lower() == constants.ENHANCED:
+        if mode.lower() == ENHANCED:
             cmd = "device-alias database ; device-alias mode enhanced"
-        elif mode.lower() == constants.BASIC:
+        elif mode.lower() == BASIC:
             cmd = "device-alias database ; no device-alias mode enhanced"
         else:
-            raise InvalidArgument("Invalid device alias mode: " + str(
-                mode) + ". Valid values are " + constants.ENHANCED + "," + constants.BASIC)
+            raise InvalidMode("Invalid device alias mode: " + str(
+                mode) + ". Valid values are " + ENHANCED + "," + BASIC)
         self.__send_device_alias_cmds(cmd)
 
     @property
@@ -231,5 +209,5 @@ class DeviceAlias(object):
                 raise CLIError(cmd, out['msg'])
 
     def __clear_lock_if_enhanced(self, mode):
-        if mode.lower() == constants.ENHANCED:
+        if mode.lower() == ENHANCED:
             self.clear_lock()

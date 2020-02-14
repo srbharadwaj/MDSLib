@@ -1,4 +1,5 @@
 from tests.enablelog import ScriptLog, banner
+
 sl = ScriptLog("switch.log")
 # sl.consoleHandler.setLevel(logging.DEBUG)
 log = sl.log
@@ -31,7 +32,6 @@ sw = Switch(
     port=p,
     timeout=30,
     verify_ssl=False)
-
 
 from mdslib.devicealias import DeviceAlias
 from mdslib import constants
@@ -86,12 +86,11 @@ print("Device alias distribution :  " + str(d.distribute))
 print("Device alias locked? :  " + str(d.locked))
 print("Device alias entries :  " + str(d.database))
 
-d.distribute =True
+d.distribute = True
 print("Device alias mode :          " + d.mode)
 print("Device alias distribution :  " + str(d.distribute))
 print("Device alias locked? :  " + str(d.locked))
 print("Device alias entries :  " + str(d.database))
-
 
 newdapairs = {'t123': '60:66:61:01:0e:00:01:ff',
               'danewtest': '60:66:61:01:0e:00:01:fe'}

@@ -1,17 +1,17 @@
 __author__ = 'Suhas Bharadwaj (subharad)'
 
 import logging
+import re
+
 import requests
+import time
+
 from .connection_manager.connect_nxapi import ConnectNxapi
 from .connection_manager.errors import CLIError
-from .parsers.system.shtopology import ShowTopology
 from .module import Module
-from .fc import Fc
-from .portchannel import PortChannel
-from .nxapikeys import versionkeys,interfacekeys
-from . import constants
-import time
-import re
+from .nxapikeys import versionkeys
+from .parsers.system.shtopology import ShowTopology
+from .utility._switch_utility import SwitchUtils
 
 log = logging.getLogger(__name__)
 
@@ -41,7 +41,7 @@ def log_exception(logger):
     return decorator
 
 
-class Switch(object):
+class Switch(SwitchUtils):
     """
     The is a switch __connection class which is used to discover switch via nxapi
     """
@@ -118,7 +118,7 @@ class Switch(object):
         chassisid = self.model
         if chassisid is not None:
             pat = "MDS\s+(.*)\((.*)\)\s+Chassis"
-            match = re.match(pat,chassisid)
+            match = re.match(pat, chassisid)
             if match:
                 ff = match.group(1).strip()
                 type = match.group(2).strip()
@@ -156,7 +156,7 @@ class Switch(object):
     @property
     def image_string(self):
         ff = self.form_factor
-        if ff in ["9706","9710","9718"]:
+        if ff in ["9706", "9710", "9718"]:
             mods = self.modules
             for eachmod in mods:
                 if "Supervisor Module-3" in eachmod.module_type:
@@ -192,91 +192,6 @@ class Switch(object):
         if not out:
             return None
         return out[versionkeys.ISAN_FILE]
-
-    @property
-    def interfaces(self):
-        retlist = []
-        cmd = "show interface brief"
-        out = self.show(cmd)
-        log.debug(out)
-
-        # Get FC related data
-        fcout = out.get('TABLE_interface_brief_fc',None)
-        if fcout is not None:
-            allfc = fcout['ROW_interface_brief_fc']
-            if type(allfc) is dict:
-                allfc = [allfc]
-            for eacfc in allfc:
-                fcname = eacfc[interfacekeys.INTERFACE]
-                fcobj = Fc(switch=self,name=fcname)
-                retlist.append(fcobj)
-
-        # Get PC related data
-        pcout = out.get('TABLE_interface_brief_portchannel', None)
-        if pcout is not None:
-            allpc = pcout['ROW_interface_brief_portchannel']
-            if type(allpc) is dict:
-                allpc = [allpc]
-            for eacpc in allpc:
-                pcname = eacpc[interfacekeys.INTERFACE]
-                match = re.match(constants.PAT_PC,pcname)
-                if match:
-                    pcid = int(match.group(1))
-                    pcobj = PortChannel(switch=self,id=pcid)
-                    retlist.append(pcobj)
-        return retlist
-
-    def __log_info_about_url_msgfmt_cmdtype(self):
-        """
-
-        :return:
-        """
-        log.info("url is :" + self.getUrl())
-        log.info("msg fmt is :" + self.getMsgFormat())
-        log.info("cmd type is :" + self.getCmdType())
-
-    def __validate_msgfmt_and_cmdtype(self, msg_fmt, cmd_type):
-        """
-
-        :param msg_fmt:
-        :param cmd_type:
-        :return:
-        """
-        if msg_fmt == "json-rpc":
-            if cmd_type == "cli" or cmd_type == "cli_ascii":
-                return True
-            else:
-                return False
-        elif msg_fmt == "xml":
-            if cmd_type == "cli_show" or cmd_type == "cli_show_ascii" or cmd_type == "cli_conf":
-                return True
-            else:
-                return False
-        elif msg_fmt == "json":
-            if cmd_type == "cli_show" or cmd_type == "cli_show_ascii" or cmd_type == "cli_conf":
-                return True
-            else:
-                return False
-        else:
-            return False
-
-    def __set_msgfmt_and_cmdtype(self, msg_fmt='xml', cmd_type='cli_show'):
-        """
-
-        :param msg_fmt:
-        :param cmd_type:
-        :return:
-        """
-        if self.__validate_msgfmt_and_cmdtype(msg_fmt, cmd_type):
-            self.__msg_format = msg_fmt
-            self.__cmd_type = cmd_type
-        else:
-            # TODO
-            # Throw proper critical warning
-            # print("TODO")
-            raise NotImplementedError
-
-        self.__log_info_about_url_msgfmt_cmdtype()
 
     def _cli_error_check(self, command_response):
         error = command_response.get(u'error')

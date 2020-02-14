@@ -1,9 +1,9 @@
+import logging
+
+import time
+
 from tests.enablelog import ScriptLog
 from tests.enablelog import banner
-import time
-from mdslib import constants
-import pprint
-import logging
 
 sl = ScriptLog("switch.log", consolelevel=logging.INFO)
 log = sl.log
@@ -49,11 +49,10 @@ sw121 = Switch(
 sw = sw121
 
 from mdslib.fc import Fc
-from mdslib.portchannel import PortChannel
 
-fobj = Fc(sw, name="fc127/57")
+fobj = Fc(sw, name="fc1/57")
 print(fobj.transceiver_details)
-fobj1 = Fc(sw, name="fc127/4")
+fobj1 = Fc(sw, name="fc1/4")
 print(fobj1.transceiver_details)
 print(fobj1.counters)
 

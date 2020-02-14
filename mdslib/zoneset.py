@@ -1,108 +1,133 @@
 import logging
-from mdslib.zone import Zone
+
+import time
+
+from .connection_manager.errors import CLIError
+from .nxapikeys import zonekeys
+from .utility.allexceptions import VsanNotPresent
+from .zone import Zone
 
 log = logging.getLogger(__name__)
 
 
 class ZoneSet(object):
-    def __init__(self, switch, vsan):
+    def __init__(self, switch, vsan_obj, name):
         self.__swobj = switch
-        self.vsan = vsan
-        self.__zoneObj = Zone(switch, vsan)
+        self._vsanobj = vsan_obj
+        self._vsan = self._vsanobj.id
+        if self._vsan is None:
+            raise VsanNotPresent("Vsan " + str(self._vsanobj._id) + " is not present on the switch.")
+        self._name = name
+        # Create a dummy zone obj, DO NOT use create method with it
+        log.debug("Creating a dummy zone object for the zoneset with name " + self._name)
+        self.__zoneObj = Zone(self.__swobj, self._vsanobj, name=None)
 
     @property
-    def zonesets(self):
-        out = self.get_facts()
+    def name(self):
+        if self._vsanobj.id is None:
+            raise VsanNotPresent("Vsan " + str(self._vsanobj._id) + " is not present on the switch.")
+        out = self.__show_zoneset_name()
         if out:
-            return out.get('zoneset_details')
+            out = out.get('TABLE_zoneset').get('ROW_zoneset')
+            return out[zonekeys.NAME]
         return None
 
     @property
-    def zoneset_names(self):
-        retout = []
-        out = self.zonesets
-        if out is not None:
-            for eachzs in out:
-                retout.append(eachzs['zoneset_name'])
-            return retout
+    def vsan(self):
+        if self.name is not None:
+            return self._vsanobj
         return None
 
     @property
-    def active_zoneset(self):
-        out = self.get_facts()
+    def members(self):
+        retlist = {}
+        if self._vsanobj.id is None:
+            raise VsanNotPresent("Vsan " + str(self._vsanobj._id) + " is not present on the switch.")
+        out = self.__show_zoneset_name()
         if out:
-            return out.get('active_zoneset_details')
+            zonesetdata = out.get('TABLE_zoneset', None).get('ROW_zoneset', None)
+            if zonesetdata is not None:
+                zonedata = zonesetdata.get('TABLE_zone', None)
+                if zonedata is not None:
+                    zdb = zonedata.get('ROW_zone', None)
+                    if type(zdb) is dict:
+                        zname = zdb[zonekeys.NAME]
+                        retlist[zname] = Zone(self.__swobj, self._vsanobj, zname)
+                    else:
+                        for eachzdb in zdb:
+                            zname = eachzdb[zonekeys.NAME]
+                            retlist[zname] = Zone(self.__swobj, self._vsanobj, eachzdb)
+                    return retlist
         return None
 
-    @property
-    def active_zoneset_name(self):
-        out = self.active_zoneset
-        if out is not None:
-            return out.get('zoneset_name')
-        return None
+    def create(self):
+        if self._vsanobj.id is None:
+            raise VsanNotPresent("Vsan " + str(self._vsanobj._id) + " is not present on the switch.")
+        cmd = "zoneset name " + self._name + " vsan " + str(self._vsan)
+        self.__zoneObj._send_zone_cmd(cmd)
 
-    def create(self, name):
-        log.debug("Create zoneset with name " + name + " in vsan " + str(self.vsan))
-        cmd = "zoneset name " + name + " vsan " + str(self.vsan)
-        return self.__zoneObj._send_zone_cmds(cmd)
+    def delete(self):
+        if self._vsanobj.id is None:
+            raise VsanNotPresent("Vsan " + str(self._vsanobj._id) + " is not present on the switch.")
+        cmd = "no zoneset name " + self._name + " vsan " + str(self._vsan)
+        self.__zoneObj._send_zone_cmd(cmd)
 
-    def delete(self, name):
-        log.debug("Delete zone with name " + name + " in vsan " + str(self.vsan))
-        cmd = "no zoneset name " + name + " vsan " + str(self.vsan)
-        return self.__zoneObj._send_zone_cmds(cmd)
+    def add_members(self, members):
+        self.__add_remove_members(members)
 
-    def get_facts(self):
-        log.debug("Getting zoneset facts")
-        retoutput = {}
-        temp = {}
-        temp1 = {}
-        out = self.__swobj.show("show zoneset vsan " + str(self.vsan))
-        if out:
-            out = out['TABLE_zoneset']['ROW_zoneset']
-            if type(out) is list:
-                temp1['zoneset_details'] = out
-            if type(out) is dict:
-                temp1['zoneset_details'] = [out]
-            out1 = self.__swobj.show("show zoneset active vsan " + str(self.vsan))
-            # print(out1)
-            if out1:
-                temp['active_zoneset_details'] = out1['TABLE_zoneset']['ROW_zoneset']
-                # print(temp)
-            retoutput = dict(temp1, **temp)
-        return retoutput
+    def remove_members(self, members):
+        self.__add_remove_members(members, remove=True)
 
-    def add_members(self, name, members):
-        cmds = self.__member_add_del(self.vsan, name, members)
-        return self.__zoneObj._send_zone_cmds(cmds)
-
-    def remove_members(self, name, members):
-        cmds = self.__member_add_del(self.vsan, name, members, add=False)
-        return self.__zoneObj._send_zone_cmds(cmds)
-
-    def activate(self, name, action=True):
-        cmd = "zoneset activate name " + name + " vsan " + str(self.vsan)
-        if action:
-            return self.__zoneObj._send_zone_cmds(cmd)
-        else:
-            cmd = "no " + cmd
-            return self.__zoneObj._send_zone_cmds(cmd)
-
-    @staticmethod
-    def __member_add_del(vsan, name, members, add=True):
-        cmdlist = []
-        if add:
-            log.debug("Trying to add zone members to zoneset with name " + name + " in vsan " + str(vsan))
-        else:
-            log.debug("Trying to remove zone members from zoneset with name " + name + " in vsan " + str(vsan))
-
-        cmd = "zoneset name " + name + " vsan " + str(vsan)
-        cmdlist.append(cmd)
-        for eachmem in members:
-            c = "member " + eachmem
-            if add:
-                cmd = c
+    def activate(self, action=True):
+        time.sleep(1)
+        if self._vsanobj.id is None:
+            raise VsanNotPresent("Vsan " + str(self._vsanobj._id) + " is not present on the switch.")
+        if self.name is not None:
+            if action:
+                cmd = "terminal dont-ask ; zoneset activate name " + self._name + " vsan " + str(
+                    self._vsan) + " ; no terminal dont-ask"
             else:
-                cmd = "no " + c
-            cmdlist.append(cmd)
-        cmds = " ; ".join(cmdlist)
-        return cmds
+                cmd = "terminal dont-ask ; no zoneset activate name " + self._name + " vsan " + str(
+                    self._vsan) + " ; no terminal dont-ask"
+            try:
+                self.__zoneObj._send_zone_cmd(cmd)
+            except CLIError as c:
+                if "Fabric unstable" in c.message:
+                    log.error("Fabric is currently unstable, executing activation after few secs")
+                    time.sleep(5)
+                    self.__zoneObj._send_zone_cmd(cmd)
+
+    def is_zoneset_active(self):
+        if self._vsanobj.id is None:
+            raise VsanNotPresent("Vsan " + str(self._vsanobj._id) + " is not present on the switch.")
+        cmd = "show zoneset active vsan " + str(self._vsan)
+        out = self.__swobj.show(cmd)
+        log.debug(out)
+        if out:
+            azsdetails = out['TABLE_zoneset']['ROW_zoneset']
+            azs = azsdetails[zonekeys.NAME]
+            if azs == self._name:
+                return True
+        return False
+
+    def __add_remove_members(self, members, remove=False):
+        cmdlist = []
+        cmdlist.append("zoneset name " + self._name + " vsan " + str(self._vsan))
+        for eachmem in members:
+            name_of_zone = eachmem.name
+            if name_of_zone is not None:
+                if remove:
+                    cmd = "no member " + name_of_zone
+                else:
+                    cmd = "member " + name_of_zone
+                cmdlist.append(cmd)
+        cmds_to_send = " ; ".join(cmdlist)
+        self.__zoneObj._send_zone_cmd(cmds_to_send)
+
+    def __show_zoneset_name(self):
+        log.debug("Executing the cmd show zone name <> vsan <> ")
+        cmd = "show zoneset name " + self._name + " vsan  " + str(self._vsan)
+        out = self.__swobj.show(cmd)
+        log.debug(out)
+        # print(out)
+        return out

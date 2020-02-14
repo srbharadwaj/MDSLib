@@ -5,12 +5,13 @@
 # Vsan
 # DeviceAlias
 
+import time
+
+from mdslib.devicealias import DeviceAlias
+from mdslib.fc import Fc
 # First lets import Switch/Fc/DeviceAlias/Vsan classes
 from mdslib.switch import Switch
-from mdslib.fc import Fc
-from mdslib.devicealias import DeviceAlias
 from mdslib.vsan import Vsan
-import time
 
 # Lets set the basic switch inputs
 user = 'admin'
@@ -35,6 +36,8 @@ print("ip    : " + sw.ipaddr)
 print("name  : " + sw.name)
 print("ver   : " + sw.version)
 print("model : " + sw.model)
+print("Sw interfaces: ")
+print(sw.interfaces)
 print(dir(sw))
 time.sleep(1)
 # #######################################
@@ -75,7 +78,7 @@ print("name : " + sw.name)
 # ############# FC Interface SECTION ###################
 
 # Lets create an FC interface object for fc127/1
-fcint = Fc(sw, 'fc127/1')
+fcint = Fc(sw, 'fc1/1')
 
 # Get basic information of this FC interface
 print("name : " + fcint.name)

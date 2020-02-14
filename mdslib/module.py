@@ -1,6 +1,6 @@
-from mdslib.connection_manager.errors import CLIError
 import logging
-from mdslib.nxapikeys import modulekeys
+
+from .nxapikeys import modulekeys
 
 log = logging.getLogger(__name__)
 

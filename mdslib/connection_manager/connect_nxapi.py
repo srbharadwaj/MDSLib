@@ -1,9 +1,10 @@
-import requests
-from requests.auth import HTTPBasicAuth
-from builtins import range
+import base64
 import json
 import logging
-import base64
+
+import requests
+from builtins import range
+from requests.auth import HTTPBasicAuth
 from urllib3.exceptions import InsecureRequestWarning
 
 from .errors import NXOSError

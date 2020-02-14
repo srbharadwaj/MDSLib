@@ -1,61 +1,14 @@
-from .connection_manager.errors import CLIError
-from .fc import Fc
-from .portchannel import PortChannel
-from .nxapikeys import vsankeys
-from .constants import PAT_FC, PAT_PC
+import logging
 import re
 
-import logging
+from .connection_manager.errors import CLIError
+from .constants import PAT_FC, PAT_PC
+from .fc import Fc
+from .nxapikeys import vsankeys
+from .portchannel import PortChannel
+from .utility.allexceptions import VsanNotPresent, InvalidInterface
 
 log = logging.getLogger(__name__)
-
-
-class VsanNotPresent(Exception):
-    """
-
-    """
-
-    def __init__(self, message):
-        """
-
-        Args:
-            message:
-        """
-        self.message = message.strip()
-
-    def __repr__(self):
-        """
-
-        Returns:
-
-        """
-        return '%s: %s' % (self.__class__.__name__, self.message)
-
-    __str__ = __repr__
-
-
-class InvalidInterface(Exception):
-    """
-
-    """
-
-    def __init__(self, message):
-        """
-
-        Args:
-            message:
-        """
-        self.message = message.strip()
-
-    def __repr__(self):
-        """
-
-        Returns:
-
-        """
-        return '%s: %s' % (self.__class__.__name__, self.message)
-
-    __str__ = __repr__
 
 
 class Vsan(object):

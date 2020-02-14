@@ -1,12 +1,14 @@
-from tests.enablelog import ScriptLog
-from tests.enablelog import banner
-import time
-from mdslib import constants
-import pprint
 import logging
+import pprint
+
+import time
+
+from mdslib import constants
 from mdslib.fc import Fc
 from mdslib.portchannel import PortChannel
 from mdslib.switch import Switch
+from tests.enablelog import ScriptLog
+from tests.enablelog import banner
 
 sl = ScriptLog("switch.log", consolelevel=logging.INFO)
 log = sl.log
@@ -60,9 +62,6 @@ fc153 = Fc(sw121, name="fc1/53")
 pc22_121.add_members([fc153])
 print("PC Members:..")
 pprint.pprint(pc22_121.members)
-print("Each PC member name..")
-for eachmen in pc22_121.members:
-    print(eachmen.name)
 
 banner("Create PC22 in sw218")
 # Lets play with port-channel
@@ -84,11 +83,9 @@ print("PC Members:..")
 pprint.pprint(pc22_218.members)
 
 fc1 = Fc(sw218, name="fc1/27")
-pc22_218.add_members([fc1])
+fc2 = Fc(sw218, name="fc1/28")
+pc22_218.add_members([fc1, fc2])
 pprint.pprint(pc22_218.members)
-print("Each PC member name..")
-for eachmen in pc22_218.members:
-    print(eachmen.name)
 
 fc153.status = constants.NO_SHUTDOWN
 fc1.status = constants.NO_SHUTDOWN
@@ -121,7 +118,6 @@ pc22_218.channel_mode = "ON"
 print("Ch-Mode: " + pc22_218.channel_mode)
 # pprint.pprint(pc22_218.counters)
 pprint.pprint(pc22_218.members)
-
 
 banner("Now remove the PC members")
 pc22_121.remove_members([fc153])

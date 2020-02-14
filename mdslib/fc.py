@@ -1,7 +1,7 @@
-from .interface import Interface
-from .constants import SHUTDOWN, NO_SHUTDOWN
-from .nxapikeys import interfacekeys
 import logging
+
+from .constants import SHUTDOWN, NO_SHUTDOWN
+from .interface import Interface
 
 log = logging.getLogger(__name__)
 
