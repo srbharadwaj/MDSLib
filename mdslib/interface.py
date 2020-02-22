@@ -1,9 +1,8 @@
 import logging
 import re
 
-from .constants import VALID_MODE, VALID_SPEED, VALID_TRUNK_MODE, VALID_STATUS, PAT_PC, PAT_FC
+from .constants import PAT_PC, PAT_FC
 from .nxapikeys import interfacekeys
-from .utility.allexceptions import InvalidSpeed, InvalidMode, InvalidStatus, InvalidTrunkMode
 
 log = logging.getLogger(__name__)
 
@@ -44,13 +43,10 @@ class Interface(object):
 
     @mode.setter
     def mode(self, value):
-        if value not in VALID_MODE:
-            raise InvalidMode("Invalid mode (" + str(value) + "), mode must be one of (" + ', '.join(VALID_MODE) + ")")
-        else:
-            cmd = "interface " + self.name + " ; switchport mode  " + value
-            log.debug("Sending the cmd: " + cmd)
-            out = self.__swobj.config(cmd)
-            log.debug(out)
+        cmd = "interface " + self.name + " ; switchport mode  " + value
+        log.debug("Sending the cmd: " + cmd)
+        out = self.__swobj.config(cmd)
+        log.debug(out)
 
     @property
     def speed(self):
@@ -61,14 +57,9 @@ class Interface(object):
 
     @speed.setter
     def speed(self, value):
-        if value not in VALID_SPEED:
-            raise InvalidSpeed("Invalid speed (" + str(value) + "), speed must be one of (" + ', '.join(
-                str(x) for x in VALID_SPEED) + ")")
-        else:
-            cmd = "interface " + self.name + " ; switchport speed  " + str(value)
-            log.debug("Sending the cmd: " + cmd)
-            out = self.__swobj.config(cmd)
-            # print(out)
+        cmd = "interface " + self.name + " ; switchport speed  " + str(value)
+        log.debug("Sending the cmd: " + cmd)
+        out = self.__swobj.config(cmd)
 
     @property
     def trunk(self):
@@ -79,14 +70,9 @@ class Interface(object):
 
     @trunk.setter
     def trunk(self, value):
-        if value not in VALID_TRUNK_MODE:
-            raise InvalidTrunkMode("Invalid trunk mode (" + str(value) + "), trunk mode must be one of (" + ', '.join(
-                VALID_TRUNK_MODE) + ")")
-        else:
-            cmd = "interface " + self.name + " ; switchport trunk mode  " + value
-            log.debug("Sending the cmd: " + cmd)
-            out = self.__swobj.config(cmd)
-            # print(out)
+        cmd = "interface " + self.name + " ; switchport trunk mode  " + value
+        log.debug("Sending the cmd: " + cmd)
+        out = self.__swobj.config(cmd)
 
     @property
     def status(self):
@@ -97,32 +83,27 @@ class Interface(object):
 
     @status.setter
     def status(self, value):
-        if value not in VALID_STATUS:
-            raise InvalidStatus("Invalid status (" + str(value) + "), status must be one of (" + ', '.join(
-                VALID_STATUS) + ")")
-        else:
-            cmd = "interface " + self.name + " ; " + value
-            log.debug("Sending the cmd: " + cmd)
-            out = self.__swobj.config(cmd)
-            # print(out)
+        cmd = "terminal dont-ask ; interface " + self.name + " ; " + value + " ; no terminal dont-ask "
+        log.debug("Sending the cmd: " + cmd)
+        out = self.__swobj.config(cmd)
 
     @property
     def counters(self):
-        cmd = "show interface " + self.name + " counters brief"
-        out = self.__swobj.show(cmd)
-        log.debug(out)
-        briefoutput = out['TABLE_counters_brief']['ROW_counters_brief']
-        # print(briefoutput)
-        cmd = "show interface " + self.name + " counters detail"
-        out = self.__swobj.show(cmd)
-        log.debug(out)
-        # detailoutput = out['TABLE_ifid_counters']['ROW_ifid_counters']
-        detailoutput = out
-        # print(detailoutput)
-        concatoutput = {**briefoutput, **detailoutput}
-        concatoutput.pop(interfacekeys.INTERFACE)
-        # print(concatoutput)
-        return concatoutput
+        return self.Counters(self)
+
+    # @property
+    # def counters(self):
+    #     cmd = "show interface " + self.name + " counters brief"
+    #     out = self.__swobj.show(cmd)
+    #     log.debug(out)
+    #     briefoutput = out['TABLE_counters_brief']['ROW_counters_brief']
+    #     cmd = "show interface " + self.name + " counters detail"
+    #     out = self.__swobj.show(cmd)
+    #     log.debug(out)
+    #     detailoutput = out
+    #     concatoutput = {**briefoutput, **detailoutput}
+    #     concatoutput.pop(interfacekeys.INTERFACE)
+    #     return concatoutput
 
     def __parse_show_int_brief(self):
         log.debug("Getting sh int brief output")
@@ -150,3 +131,65 @@ class Interface(object):
                 if eachout[interfacekeys.INTERFACE] == self.name:
                     return eachout
         return None
+
+    def _execute_counters_detailed_cmd(self):
+        cmd = "show interface " + self.name + " counters detailed"
+        log.debug("Sending the cmd")
+        log.debug(cmd)
+        out = self.__swobj.config(cmd)
+        return out['body']
+
+    class Counters(object):
+        def __init__(self, intobj):
+            self.__intobj = intobj
+
+        @property
+        def brief(self):
+            out = self.__intobj._execute_counters_detailed_cmd()
+            allkeys = list(out.keys())
+            for k in allkeys:
+                if k.startswith('TABLE'):
+                    out.pop(k)
+                if k.startswith('interface'):
+                    out.pop(k)
+            return out
+
+        @property
+        def total_stats(self):
+            out = self.__intobj._execute_counters_detailed_cmd()
+            total = out.get('TABLE_total', None)
+            if total is not None:
+                return total.get('ROW_total', None)
+            return None
+
+        @property
+        def link_stats(self):
+            out = self.__intobj._execute_counters_detailed_cmd()
+            total = out.get('TABLE_link', None)
+            if total is not None:
+                return total.get('ROW_link', None)
+            return None
+
+        @property
+        def loop_stats(self):
+            out = self.__intobj._execute_counters_detailed_cmd()
+            total = out.get('TABLE_loop', None)
+            if total is not None:
+                return total.get('ROW_loop', None)
+            return None
+
+        @property
+        def congestion_stats(self):
+            out = self.__intobj._execute_counters_detailed_cmd()
+            total = out.get('TABLE_congestion', None)
+            if total is not None:
+                return total.get('ROW_congestion', None)
+            return None
+
+        @property
+        def other_stats(self):
+            out = self.__intobj._execute_counters_detailed_cmd()
+            total = out.get('TABLE_others', None)
+            if total is not None:
+                return total.get('ROW_others', None)
+            return None

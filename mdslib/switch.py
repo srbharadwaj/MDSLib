@@ -441,7 +441,12 @@ class Switch(SwitchUtils):
 
     def get_peer_npv_switches(self):
         retout = []
-        fcnsout = self.show("show fcns database detail")['TABLE_fcns_vsan']['ROW_fcns_vsan']
+        try:
+            fcnsout = self.show("show fcns database detail")['TABLE_fcns_vsan']['ROW_fcns_vsan']
+        except KeyError:
+            return None
+        if type(fcnsout) is dict:
+            fcnsout = [fcnsout]
         for eachline in fcnsout:
             temp = eachline['TABLE_fcns_database']['ROW_fcns_database']
             # print(temp)

@@ -35,7 +35,7 @@ sw121 = Switch(
 
 sw = sw121
 
-from mdslib import zone, vsan, fc
+from mdslib import zone, vsan, fc, portchannel
 
 # v1 = vsan.Vsan(sw, 1)
 # z1 = zone.Zone(sw, v1, "zonejdsu")
@@ -45,6 +45,7 @@ from mdslib import zone, vsan, fc
 # print("Zone members are : ")
 # print(z1.members)
 # print("Zone mode is : " + z1.mode)
+# time.sleep(10000)
 #
 # # print("Zone defzone is : " + z1.default_zone) #BUG
 # print("Zone defzone is : ")
@@ -125,6 +126,8 @@ v = vsan.Vsan(sw, id=456)
 v.create()
 int12 = fc.Fc(sw, "fc1/2")
 int13 = fc.Fc(sw, "fc1/3")
+pc1 = portchannel.PortChannel(sw, 1)
+pc1.create()
 z1 = zone.Zone(sw, v, "zonetemp")
 if z1.name is None:
     print("Zone name is None")
@@ -142,6 +145,7 @@ print("Zone smartzone is : " + z1.smart_zone)
 z1.smart_zone = False
 print("Zone smartzone is : " + z1.smart_zone)
 
+#######################################################
 # Create zone
 z1.create()
 z1.add_members([int12, int13, "somename", "11:22:33:44:55:66:77:88"])
@@ -150,7 +154,29 @@ print(z1.members)
 z1.remove_members([int12, "somename", "11:22:33:44:55:66:77:88"])
 print("Zone members are : ")
 print(z1.members)
+memlist = [{'pwwn': '50:08:01:60:08:9f:4d:00'},
+           {'pwwn': '50:08:01:60:08:9f:4d:01'},
+           {'interface': int13.name},
+           {'device-alias': 'hello'}, {'ip-address': '1.1.1.1'},
+           {'symbolic-nodename': 'symbnodename'},
+           {'fwwn': '11:12:13:14:15:16:17:18'}, {'fcid': '0x123456'},
+           {'interface': pc1.name},
+           {'symbolic-nodename': 'testsymnode'},
+           {'fcalias': 'somefcalias'}]
+z1.add_members(memlist)
+print("Zone members are after adding dict : ")
+print(z1.members)
+memlist = [{'pwwn': '50:08:01:60:08:9f:4d:00'},
+           {'pwwn': '50:08:01:60:08:9f:4d:01'},
+           {'interface': int13.name},
+           {'device-alias': 'hello'}, {'ip-address': '1.1.1.1'},
+           {'symbolic-nodename': 'symbnodename'}]
+z1.remove_members(memlist)
+print("Zone members are after deleting via dict : ")
+print(z1.members)
 
+print(z1.__dict__)
+print(z1.activedb_size)
 if z1.name is None:
     print("ERROR!!! Zone name is None, when it should not be none")
 else:

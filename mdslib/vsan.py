@@ -87,6 +87,8 @@ class Vsan(object):
 
     # property for suspend
     def _set_suspend(self, value):
+        if type(value) is not bool:
+            raise TypeError("Only bool value(true/false) supported.")
         cmd = "vsan database ; "
         if value:
             cmd = cmd + "vsan " + str(self._id) + " suspend"

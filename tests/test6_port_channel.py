@@ -43,6 +43,7 @@ banner("Create PC22 in sw121")
 # Lets play with port-channel
 pc22_121 = PortChannel(switch=sw121, id=22)
 pc22_121.create()
+
 pc22_121.description = "This is a sample pc description"
 banner("Get info about interface pc22_121")
 print("Desc: " + pc22_121.description)

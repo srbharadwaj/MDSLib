@@ -50,13 +50,34 @@ sw = sw121
 
 from mdslib.fc import Fc
 
-fobj = Fc(sw, name="fc1/57")
-print(fobj.transceiver_details)
-fobj1 = Fc(sw, name="fc1/4")
-print(fobj1.transceiver_details)
-print(fobj1.counters)
+fobj = Fc(sw, name="fc1/1")
+fobj.out_of_service = True
+print(fobj.status)
+fobj.out_of_service = False
+print(fobj.status)
+print(fobj.transceiver.sfp_present)
+print(fobj.transceiver.bit_rate)
+print(fobj.transceiver.min_speed)
+print(fobj.transceiver.max_speed)
+print(fobj.transceiver.name)
+print(fobj.transceiver.part_number)
+print(fobj.transceiver.voltage)
+print(fobj.transceiver.current)
+print(fobj.transceiver.temperature)
+print(fobj.transceiver.tx_power)
+print(fobj.transceiver.rx_power)
 
-banner("Get info about interface fc127/57")
+fobj1 = Fc(sw, name="fc1/4")
+print(fobj1.counters)
+print(fobj1.counters.brief)
+print(fobj1.counters.total_stats)
+print(fobj1.counters.congestion_stats)
+print(fobj1.counters.link_stats)
+print(fobj1.counters.loop_stats)
+print(fobj1.counters.other_stats)
+
+time.sleep(1000000)
+banner("Get info about interface fc1/57")
 print("Desc: " + fobj.description)
 print("Mode: " + fobj.mode)
 print("Name: " + fobj.name)

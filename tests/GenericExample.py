@@ -5,13 +5,8 @@
 # Vsan
 # DeviceAlias
 
-import time
-
-from mdslib.devicealias import DeviceAlias
-from mdslib.fc import Fc
 # First lets import Switch/Fc/DeviceAlias/Vsan classes
 from mdslib.switch import Switch
-from mdslib.vsan import Vsan
 
 # Lets set the basic switch inputs
 user = 'admin'
@@ -31,6 +26,10 @@ sw = Switch(
     timeout=30,
     verify_ssl=False)
 
+# print(sw.zones)
+import sys
+
+sys.exit()
 # Get basic information of the switch
 print("ip    : " + sw.ipaddr)
 print("name  : " + sw.name)
