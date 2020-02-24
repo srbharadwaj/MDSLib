@@ -49,33 +49,33 @@ except Exception as e:
 print("Device alias mode :          " + d.mode)
 print("Device alias distribution :  " + str(d.distribute))
 print("Device alias locked? :  " + str(d.locked))
-print("Device alias entries :  " + str(d.database))
+#print("Device alias entries :  " + str(d.database))
 
 print("Setting Device alias distribution to False...")
 d.distribute = False
 print("Device alias mode :          " + d.mode)
 print("Device alias distribution :  " + str(d.distribute))
 print("Device alias locked? :  " + str(d.locked))
-print("Device alias entries :  " + str(d.database))
+#print("Device alias entries :  " + str(d.database))
 
 print("Setting Device alias distribution to True...")
 d.distribute = True
 print("Device alias mode :          " + d.mode)
 print("Device alias distribution :  " + str(d.distribute))
 print("Device alias locked? :  " + str(d.locked))
-print("Device alias entries :  " + str(d.database))
+#print("Device alias entries :  " + str(d.database))
 
-print("Deleting device alias entries...")
-d.delete("tieHost-1052-Suhas-Rename")
-d.delete("tieHost-1052")
+# print("Deleting device alias entries...")
+# d.delete("tieHost-1052-Suhas-Rename")
+# d.delete("tieHost-1052")
 
-print("Rename device alias entries...")
-# oldName already present
-d.rename('tieHost-1053', 'tieHost-1052')
-# newName already present
-d.rename('tieHost-1053', 'tieHost-1052')
-# correct rename
-d.rename('tieHost-1053', 'tieHost-1052-Suhas-Rename')
+# print("Rename device alias entries...")
+# # oldName already present
+# d.rename('tieHost-1053', 'tieHost-1052')
+# # newName already present
+# d.rename('tieHost-1053', 'tieHost-1052')
+# # correct rename
+# d.rename('tieHost-1053', 'tieHost-1052-Suhas-Rename')
 
 # d.clear_lock()
 # d.distribute = 1234
@@ -83,15 +83,16 @@ d.rename('tieHost-1053', 'tieHost-1052-Suhas-Rename')
 print("Device alias mode :          " + d.mode)
 print("Device alias distribution :  " + str(d.distribute))
 print("Device alias locked? :  " + str(d.locked))
-print("Device alias entries :  " + str(d.database))
+#print("Device alias entries :  " + str(d.database))
 
 d.distribute = True
 print("Device alias mode :          " + d.mode)
 print("Device alias distribution :  " + str(d.distribute))
 print("Device alias locked? :  " + str(d.locked))
-print("Device alias entries :  " + str(d.database))
+#print("Device alias entries :  " + str(d.database))
 
-newdapairs = {'t123': '60:66:61:01:0e:00:01:ff',
+print("Creating new pairs...entries...")
+newdapairs = {'t123123': '60:67:62:01:0e:00:01:ff',
               'danewtest': '60:66:61:01:0e:00:01:fe'}
 # Pass the dict to the create api
 d.create(newdapairs)
@@ -103,7 +104,7 @@ d.create(newdapairs)
 # print("Device alias locked? :  " + str(d.locked))
 # print("Device alias entries :  " + str(d.database))
 print("Adding device alias entries...")
-da = {'h189-dell-windows-bottom-p2': '21:01:00:1b:32:aa:ff:4a',
+da = {'^!@h189-dell-windell-windows9-dell--wbottom-p2': '21:01:00:1b:32:aa:ff:4a',
       'h189-dell-windows-bottom-p3': '21:02:00:1b:32:ca:ff:4a',
       'h189-dell-windows-bottom-p4': '21:03:00:1b:32:ea:ff:4a'}
 # da = {'t12': '50:06:01:01:0e:00:01:ff', 'p1test': '10:00:10:10:10:10:00:00', 'test1_add': '56:02:22:11:22:88:11:67', 'test2_add': '65:22:22:11:22:22:11:0d'}

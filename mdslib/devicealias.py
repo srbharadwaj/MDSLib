@@ -26,7 +26,16 @@ class DeviceAlias(object):
         else:
             raise InvalidMode("Invalid device alias mode: " + str(
                 mode) + ". Valid values are " + ENHANCED + "," + BASIC)
-        self.__send_device_alias_cmds(cmd)
+        out = self.__swobj.config(cmd)
+        if out is not None:
+            msg = out['msg']
+            dist = self.distribute
+            if dist and dist is not None:
+                self.__send_commit(mode)
+            raise CLIError(cmd, msg)
+        dist = self.distribute
+        if dist and dist is not None:
+            self.__send_commit(mode)
 
     @property
     def distribute(self):
@@ -49,7 +58,10 @@ class DeviceAlias(object):
             cmd = "device-alias database ; no device-alias distribute"
             log.debug("Setting device alias mode to 'Disabled'")
             log.debug(cmd)
-        self.__send_device_alias_cmds(cmd)
+        out = self.__swobj.config(cmd)
+        if out is not None:
+            msg = out['msg']
+            raise CLIError(cmd, msg)
 
     @property
     def locked(self):
@@ -76,38 +88,25 @@ class DeviceAlias(object):
                 retout[eachentry['dev_alias_name']] = eachentry['pwwn']
             return retout
 
-    # def create(self, namepwwn):
-    #     existingdb = self.database
-    #     facts_out = self.__get_facts()
-    #     mode = self.mode
-    #     for name, pwwn in namepwwn.items():
-    #         if existingdb and name in existingdb:
-    #             log.error("Device alias name " + name + " is already present in the database")
-    #             continue
-    #         if existingdb and pwwn in existingdb.values():
-    #             log.error("pwwn " + pwwn + " already present in the database with another name")
-    #             continue
-    #         log.info("Creating device alias with name:pwwn  " + name + " : " + pwwn)
-    #         cmd = "device-alias database ; "
-    #         cmd = cmd + " device-alias name " + name + " pwwn " + pwwn + " ; "
-    #         self.__send_device_alias_cmds(cmd, facts_out, mode, skipcommit=True)
-    #     dist = self.distribute
-    #     if dist and dist is not None:
-    #         self.__send_commit(mode)
-
     def create(self, namepwwn):
-        # facts_out = self.__get_facts()
         mode = self.mode
         for name, pwwn in namepwwn.items():
             log.debug("Creating device alias with name:pwwn  " + name + " : " + pwwn)
             cmd = "device-alias database ; "
             cmd = cmd + " device-alias name " + name + " pwwn " + pwwn + " ; "
-            try:
-                out = self.__swobj.config(cmd)
-            except CLIError as c:
-                msg = c.message
+            out = self.__swobj.config(cmd)
+            if out is not None:
+                msg = out['msg']
                 self.__clear_lock_if_enhanced(mode)
-                raise CLIError(cmd, msg)
+                dist = self.distribute
+                if dist and dist is not None:
+                    self.__send_commit(mode)
+                if "Device Alias already present" in msg:
+                    log.info("The command : " + cmd + " was not executed because Device Alias already present")
+                elif "Another device-alias already present with the same pwwn" in msg:
+                    log.info("The command : " + cmd + " was not executed because Device Alias already present")
+                else:
+                    raise CLIError(cmd, msg)
         dist = self.distribute
         if dist and dist is not None:
             self.__send_commit(mode)
@@ -116,11 +115,14 @@ class DeviceAlias(object):
         mode = self.mode
         log.debug("Deleting device alias with args " + name)
         cmd = "device-alias database ; no device-alias name " + name
-        try:
-            out = self.__swobj.config(cmd)
-        except CLIError as c:
-            msg = c.message
+        out = self.__swobj.config(cmd)
+        if out is not None:
+            msg = out['msg']
             self.__clear_lock_if_enhanced(mode)
+            dist = self.distribute
+            if dist and dist is not None:
+                self.__send_commit(mode)
+            raise CLIError(cmd, msg)
         dist = self.distribute
         if dist and dist is not None:
             self.__send_commit(mode)
@@ -129,12 +131,15 @@ class DeviceAlias(object):
         mode = self.mode
         log.debug("Renaming device alias with args " + oldname + " " + newname)
         cmd = "device-alias database ; device-alias rename " + oldname + " " + newname
-        try:
-            out = self.__swobj.config(cmd)
-        except CLIError as c:
-            msg = c.message
+        out = self.__swobj.config(cmd)
+        if out is not None:
+            msg = out['msg']
             self.__clear_lock_if_enhanced(mode)
+            dist = self.distribute
+            if dist and dist is not None:
+                self.__send_commit(mode)
             raise CLIError(cmd, msg)
+
         dist = self.distribute
         if dist and dist is not None:
             self.__send_commit(mode)
@@ -159,9 +164,21 @@ class DeviceAlias(object):
         return dict(retoutput, **shdastatus)
 
     def clear_database(self):
+        mode = self.mode
         log.debug("Sending the cmd clear device-alias database")
         cmd = "terminal dont-ask ; device-alias database ; clear device-alias database ; no terminal dont-ask "
-        self.__send_device_alias_cmds(cmd)
+        out = self.__swobj.config(cmd)
+        if out is not None:
+            msg = out['msg']
+            self.__clear_lock_if_enhanced(mode)
+            dist = self.distribute
+            if dist and dist is not None:
+                self.__send_commit(mode)
+            raise CLIError(cmd, msg)
+
+        dist = self.distribute
+        if dist and dist is not None:
+            self.__send_commit(mode)
 
     @staticmethod
     def __get_mode(facts_out):
