@@ -106,14 +106,8 @@ class DeviceAlias(object):
                 out = self.__swobj.config(cmd)
             except CLIError as c:
                 msg = c.message
-                if "Device Alias already present" in msg:
-                    log.info("Device Alias already present")
-                elif "Another device-alias already present with the same pwwn" in msg:
-                    log.info("Another device-alias already present with the same pwwn")
-                else:
-                    log.error(msg)
-                    self.__clear_lock_if_enhanced(mode)
-                    raise CLIError(cmd, msg)
+                self.__clear_lock_if_enhanced(mode)
+                raise CLIError(cmd, msg)
         dist = self.distribute
         if dist and dist is not None:
             self.__send_commit(mode)
@@ -126,12 +120,7 @@ class DeviceAlias(object):
             out = self.__swobj.config(cmd)
         except CLIError as c:
             msg = c.message
-            if "Device Alias not present" in msg:
-                log.info("Device Alias not present")
-            else:
-                log.error(msg)
-                self.__clear_lock_if_enhanced(mode)
-                raise CLIError(cmd, msg)
+            self.__clear_lock_if_enhanced(mode)
         dist = self.distribute
         if dist and dist is not None:
             self.__send_commit(mode)
@@ -144,12 +133,8 @@ class DeviceAlias(object):
             out = self.__swobj.config(cmd)
         except CLIError as c:
             msg = c.message
-            if "Device Alias not present" in msg:
-                log.info("Device Alias not present")
-            else:
-                log.error(msg)
-                self.__clear_lock_if_enhanced(mode)
-                raise CLIError(cmd, msg)
+            self.__clear_lock_if_enhanced(mode)
+            raise CLIError(cmd, msg)
         dist = self.distribute
         if dist and dist is not None:
             self.__send_commit(mode)
