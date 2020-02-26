@@ -39,8 +39,10 @@ sw218 = Switch(
 
 sw121 = Switch(
     ip_address=ip_address1,
+    #ip_address='10.197.155.110',
     username=user,
     password=pw,
+    #password='nbv_!2345*',
     connection_type='https',
     port=p,
     timeout=30,
@@ -51,6 +53,10 @@ sw = sw121
 from mdslib.fc import Fc
 
 fobj = Fc(sw, name="fc1/1")
+#fobj.description = "Desc test"
+fobj.description = "123 Description of maximum 254 charactersDescription of maximum 254 charactersDescription of maximum 254 charactersDescription of maximum 254 charactersDescription of maximum 254 charactersDescription of maximum 254 charactersDescription of maximum 254 c"
+print(fobj.description)
+time.sleep(1000000)
 fobj.out_of_service = True
 print(fobj.status)
 fobj.out_of_service = False
@@ -76,7 +82,6 @@ print(fobj1.counters.link_stats)
 print(fobj1.counters.loop_stats)
 print(fobj1.counters.other_stats)
 
-time.sleep(1000000)
 banner("Get info about interface fc1/57")
 print("Desc: " + fobj.description)
 print("Mode: " + fobj.mode)

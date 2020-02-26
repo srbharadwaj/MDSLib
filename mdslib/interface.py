@@ -10,7 +10,7 @@ log = logging.getLogger(__name__)
 class Interface(object):
     def __init__(self, switch, name):
         self.__swobj = switch
-        self.name = name
+        self._name = name
 
     # Interface is the base class for Fc and PortChannel.
     # So you cannot instantiate the base class(Interface), you have to instantiate the derived/child class (Fc,PortChannel)
@@ -22,14 +22,23 @@ class Interface(object):
         return object.__new__(cls)
 
     @property
+    def name(self):
+        return self._name
+
+    @property
     def description(self):
-        out = self.__swobj.show("show interface  " + self.name + " description")
+        out = self.__swobj.show("show interface  " + self._name + " description")
         desc = out['TABLE_interface']['ROW_interface']['description']
-        return desc
+        # IF the string is a big one then the return element is of type list
+        if type(desc) is list:
+            retval = ''.join(desc)
+        else:
+            retval = desc
+        return retval
 
     @description.setter
     def description(self, value):
-        cmd = "interface " + self.name + " ; switchport description  " + value
+        cmd = "interface " + self._name + " ; switchport description  " + value
         log.debug("Sending the cmd: " + cmd)
         out = self.__swobj.config(cmd)
         log.debug(out)
@@ -43,7 +52,7 @@ class Interface(object):
 
     @mode.setter
     def mode(self, value):
-        cmd = "interface " + self.name + " ; switchport mode  " + value
+        cmd = "interface " + self._name + " ; switchport mode  " + value
         log.debug("Sending the cmd: " + cmd)
         out = self.__swobj.config(cmd)
         log.debug(out)
@@ -57,7 +66,7 @@ class Interface(object):
 
     @speed.setter
     def speed(self, value):
-        cmd = "interface " + self.name + " ; switchport speed  " + str(value)
+        cmd = "interface " + self._name + " ; switchport speed  " + str(value)
         log.debug("Sending the cmd: " + cmd)
         out = self.__swobj.config(cmd)
 
@@ -70,7 +79,7 @@ class Interface(object):
 
     @trunk.setter
     def trunk(self, value):
-        cmd = "interface " + self.name + " ; switchport trunk mode  " + value
+        cmd = "interface " + self._name + " ; switchport trunk mode  " + value
         log.debug("Sending the cmd: " + cmd)
         out = self.__swobj.config(cmd)
 
@@ -83,7 +92,7 @@ class Interface(object):
 
     @status.setter
     def status(self, value):
-        cmd = "terminal dont-ask ; interface " + self.name + " ; " + value + " ; no terminal dont-ask "
+        cmd = "terminal dont-ask ; interface " + self._name + " ; " + value + " ; no terminal dont-ask "
         log.debug("Sending the cmd: " + cmd)
         out = self.__swobj.config(cmd)
 
@@ -91,31 +100,17 @@ class Interface(object):
     def counters(self):
         return self.Counters(self)
 
-    # @property
-    # def counters(self):
-    #     cmd = "show interface " + self.name + " counters brief"
-    #     out = self.__swobj.show(cmd)
-    #     log.debug(out)
-    #     briefoutput = out['TABLE_counters_brief']['ROW_counters_brief']
-    #     cmd = "show interface " + self.name + " counters detail"
-    #     out = self.__swobj.show(cmd)
-    #     log.debug(out)
-    #     detailoutput = out
-    #     concatoutput = {**briefoutput, **detailoutput}
-    #     concatoutput.pop(interfacekeys.INTERFACE)
-    #     return concatoutput
-
     def __parse_show_int_brief(self):
         log.debug("Getting sh int brief output")
         out = self.__swobj.show("show interface brief ")
         log.debug(out)
         # print(out)
-        fcmatch = re.match(PAT_FC, self.name)
-        pcmatch = re.match(PAT_PC, self.name)
+        fcmatch = re.match(PAT_FC, self._name)
+        pcmatch = re.match(PAT_PC, self._name)
         if fcmatch:
             out = out['TABLE_interface_brief_fc']['ROW_interface_brief_fc']
             for eachout in out:
-                if eachout[interfacekeys.INTERFACE] == self.name:
+                if eachout[interfacekeys.INTERFACE] == self._name:
                     return eachout
         elif pcmatch:
             # Need to check if "sh int brief" has PC info
@@ -128,12 +123,12 @@ class Interface(object):
             else:
                 outlist = out
             for eachout in outlist:
-                if eachout[interfacekeys.INTERFACE] == self.name:
+                if eachout[interfacekeys.INTERFACE] == self._name:
                     return eachout
         return None
 
     def _execute_counters_detailed_cmd(self):
-        cmd = "show interface " + self.name + " counters detailed"
+        cmd = "show interface " + self._name + " counters detailed"
         log.debug("Sending the cmd")
         log.debug(cmd)
         out = self.__swobj.config(cmd)
