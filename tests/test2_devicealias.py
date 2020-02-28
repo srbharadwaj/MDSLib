@@ -49,21 +49,21 @@ except Exception as e:
 print("Device alias mode :          " + d.mode)
 print("Device alias distribution :  " + str(d.distribute))
 print("Device alias locked? :  " + str(d.locked))
-#print("Device alias entries :  " + str(d.database))
+# print("Device alias entries :  " + str(d.database))
 
 print("Setting Device alias distribution to False...")
 d.distribute = False
 print("Device alias mode :          " + d.mode)
 print("Device alias distribution :  " + str(d.distribute))
 print("Device alias locked? :  " + str(d.locked))
-#print("Device alias entries :  " + str(d.database))
+# print("Device alias entries :  " + str(d.database))
 
 print("Setting Device alias distribution to True...")
 d.distribute = True
 print("Device alias mode :          " + d.mode)
 print("Device alias distribution :  " + str(d.distribute))
 print("Device alias locked? :  " + str(d.locked))
-#print("Device alias entries :  " + str(d.database))
+# print("Device alias entries :  " + str(d.database))
 
 # print("Deleting device alias entries...")
 # d.delete("tieHost-1052-Suhas-Rename")
@@ -83,13 +83,13 @@ print("Device alias locked? :  " + str(d.locked))
 print("Device alias mode :          " + d.mode)
 print("Device alias distribution :  " + str(d.distribute))
 print("Device alias locked? :  " + str(d.locked))
-#print("Device alias entries :  " + str(d.database))
+# print("Device alias entries :  " + str(d.database))
 
 d.distribute = True
 print("Device alias mode :          " + d.mode)
 print("Device alias distribution :  " + str(d.distribute))
 print("Device alias locked? :  " + str(d.locked))
-#print("Device alias entries :  " + str(d.database))
+# print("Device alias entries :  " + str(d.database))
 
 print("Creating new pairs...entries...")
 newdapairs = {'t123123': '60:67:62:01:0e:00:01:ff',

@@ -1,3 +1,4 @@
+from mdslib import constants
 from tests.enablelog import ScriptLog
 
 sl = ScriptLog("switch.log")
@@ -48,9 +49,11 @@ v.add_interfaces([int14, int15])
 
 z1 = Zone(sw, v, "zonetemp")
 z2 = Zone(sw, v, "zonetemp_int")
+z1.mode = constants.ENHANCED
 z1.create()
-z1.add_members(["somename", "11:22:33:44:55:66:77:88"])
-z2.add_members([int14, int15])
+z2.create()
+# z1.add_members(["somename", "11:22:33:44:55:66:77:88"])
+# z2.add_members([int14, int15])
 
 zs = ZoneSet(switch=sw, vsan_obj=v, name="scriptZoneset")
 zs.create()
@@ -58,7 +61,9 @@ print(zs.vsan)
 print(zs.name)
 print("Members before - no mem:")
 print(zs.members)
-zs.add_members([z1])
+zs.add_members([z2])
+exit()
+
 print("Members before - after one add:")
 print(zs.members)
 print("Members before - after second add:")

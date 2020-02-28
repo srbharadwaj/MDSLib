@@ -4,7 +4,7 @@ import time
 
 from .connection_manager.errors import CLIError
 from .nxapikeys import zonekeys
-from .utility.allexceptions import VsanNotPresent
+from .utility.allexceptions import VsanNotPresent, ZoneNotPresent
 from .zone import Zone
 
 log = logging.getLogger(__name__)
@@ -115,14 +115,19 @@ class ZoneSet(object):
         cmdlist.append("zoneset name " + self._name + " vsan " + str(self._vsan))
         for eachmem in members:
             name_of_zone = eachmem.name
-            if name_of_zone is not None:
+            if name_of_zone is None:
+                self.__zoneObj._clear_lock_if_enhanced()
+                raise ZoneNotPresent(
+                    "The given zoneset member '" + eachmem._name + "' is not present in the switch. Please create the zone first.")
+            else:
                 if remove:
                     cmd = "no member " + name_of_zone
                 else:
                     cmd = "member " + name_of_zone
                 cmdlist.append(cmd)
         cmds_to_send = " ; ".join(cmdlist)
-        self.__zoneObj._send_zone_cmd(cmds_to_send)
+        out = self.__zoneObj._send_zone_cmd(cmds_to_send)
+        # print(out)
 
     def __show_zoneset_name(self):
         log.debug("Executing the cmd show zone name <> vsan <> ")

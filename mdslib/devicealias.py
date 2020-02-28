@@ -227,7 +227,7 @@ class DeviceAlias(object):
                 log.error(msg)
                 self.__clear_lock_if_enhanced(mode)
                 raise CLIError(command, msg)
-            # self.__clear_lock_if_enhanced(mode)
+            # self._clear_lock_if_enhanced(mode)
 
         if skipcommit:
             return False, None

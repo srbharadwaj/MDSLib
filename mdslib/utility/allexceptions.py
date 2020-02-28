@@ -260,3 +260,27 @@ class InvalidChannelMode(Exception):
         return '%s: %s' % (self.__class__.__name__, self.message)
 
     __str__ = __repr__
+
+
+class ZoneNotPresent(Exception):
+    """
+
+    """
+
+    def __init__(self, message):
+        """
+
+        Args:
+            message:
+        """
+        self.message = message.strip()
+
+    def __repr__(self):
+        """
+
+        Returns:
+
+        """
+        return '%s: %s' % (self.__class__.__name__, self.message)
+
+    __str__ = __repr__

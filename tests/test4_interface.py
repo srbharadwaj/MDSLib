@@ -39,10 +39,10 @@ sw218 = Switch(
 
 sw121 = Switch(
     ip_address=ip_address1,
-    #ip_address='10.197.155.110',
+    # ip_address='10.197.155.110',
     username=user,
     password=pw,
-    #password='nbv_!2345*',
+    # password='nbv_!2345*',
     connection_type='https',
     port=p,
     timeout=30,
@@ -53,7 +53,7 @@ sw = sw121
 from mdslib.fc import Fc
 
 fobj = Fc(sw, name="fc1/1")
-#fobj.description = "Desc test"
+# fobj.description = "Desc test"
 fobj.description = "123 Description of maximum 254 charactersDescription of maximum 254 charactersDescription of maximum 254 charactersDescription of maximum 254 charactersDescription of maximum 254 charactersDescription of maximum 254 charactersDescription of maximum 254 c"
 print(fobj.description)
 time.sleep(1000000)

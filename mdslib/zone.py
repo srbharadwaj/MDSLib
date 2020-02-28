@@ -381,11 +381,11 @@ class Zone(object):
                     log.debug(msg)
                 else:
                     log.error(msg)
-                    self.__clear_lock_if_enhanced()
+                    self._clear_lock_if_enhanced()
                     raise CLIError(cmd, msg)
         self.__commit_config_if_locked()
 
-    def __clear_lock_if_enhanced(self):
+    def _clear_lock_if_enhanced(self):
         time.sleep(2)
         if self.mode == ENHANCED:
             self.clear_lock()
