@@ -1,4 +1,4 @@
-class InvalidZoneMode(Exception):
+class CommonException(Exception):
     """
 
     """
@@ -22,265 +22,53 @@ class InvalidZoneMode(Exception):
     __str__ = __repr__
 
 
-class InvalidZoneMemberType(Exception):
-    """
+class InvalidZoneMode(CommonException):
+    pass
 
-    """
 
-    def __init__(self, message):
-        """
+class InvalidZoneMemberType(CommonException):
+    pass
 
-        Args:
-            message:
-        """
-        self.message = message.strip()
 
-    def __repr__(self):
-        """
+class VsanNotPresent(CommonException):
+    pass
 
-        Returns:
 
-        """
-        return '%s: %s' % (self.__class__.__name__, self.message)
+class InvalidInterface(CommonException):
+    pass
 
-    __str__ = __repr__
 
+class InvalidStatus(CommonException):
+    pass
 
-class VsanNotPresent(Exception):
-    """
 
-    """
+class InvalidTrunkMode(CommonException):
+    pass
 
-    def __init__(self, message):
-        """
 
-        Args:
-            message:
-        """
-        self.message = message.strip()
+class InvalidSpeed(CommonException):
+    pass
 
-    def __repr__(self):
-        """
 
-        Returns:
+class InvalidMode(CommonException):
+    pass
 
-        """
-        return '%s: %s' % (self.__class__.__name__, self.message)
 
-    __str__ = __repr__
+class PortChannelNotPresent(CommonException):
+    pass
 
 
-class InvalidInterface(Exception):
-    """
+class InvalidPortChannelRange(CommonException):
+    pass
 
-    """
 
-    def __init__(self, message):
-        """
+class InvalidChannelMode(CommonException):
+    pass
 
-        Args:
-            message:
-        """
-        self.message = message.strip()
 
-    def __repr__(self):
-        """
+class ZoneNotPresent(CommonException):
+    pass
 
-        Returns:
 
-        """
-        return '%s: %s' % (self.__class__.__name__, self.message)
-
-    __str__ = __repr__
-
-
-class InvalidStatus(Exception):
-    """
-
-        """
-
-    def __init__(self, message):
-        """
-
-        Args:
-            message:
-        """
-        self.message = message.strip()
-
-    def __repr__(self):
-        """
-
-        Returns:
-
-        """
-        return '%s: %s' % (self.__class__.__name__, self.message)
-
-    __str__ = __repr__
-
-
-class InvalidTrunkMode(Exception):
-    """
-
-           """
-
-    def __init__(self, message):
-        """
-
-        Args:
-            message:
-        """
-        self.message = message.strip()
-
-    def __repr__(self):
-        """
-
-        Returns:
-
-        """
-        return '%s: %s' % (self.__class__.__name__, self.message)
-
-    __str__ = __repr__
-
-
-class InvalidSpeed(Exception):
-    """
-
-            """
-
-    def __init__(self, message):
-        """
-
-        Args:
-            message:
-        """
-        self.message = message.strip()
-
-    def __repr__(self):
-        """
-
-        Returns:
-
-        """
-        return '%s: %s' % (self.__class__.__name__, self.message)
-
-    __str__ = __repr__
-
-
-class InvalidMode(Exception):
-    """
-
-            """
-
-    def __init__(self, message):
-        """
-
-        Args:
-            message:
-        """
-        self.message = message.strip()
-
-    def __repr__(self):
-        """
-
-        Returns:
-
-        """
-        return '%s: %s' % (self.__class__.__name__, self.message)
-
-    __str__ = __repr__
-
-
-class PortChannelNotPresent(Exception):
-    """
-
-    """
-
-    def __init__(self, message):
-        """
-
-        Args:
-            message:
-        """
-        self.message = message.strip()
-
-    def __repr__(self):
-        """
-
-        Returns:
-
-        """
-        return '%s: %s' % (self.__class__.__name__, self.message)
-
-    __str__ = __repr__
-
-
-class InvalidPortChannelRange(Exception):
-    """
-
-    """
-
-    def __init__(self, message):
-        """
-
-        Args:
-            message:
-        """
-        self.message = message.strip()
-
-    def __repr__(self):
-        """
-
-        Returns:
-
-        """
-        return '%s: %s' % (self.__class__.__name__, self.message)
-
-    __str__ = __repr__
-
-
-class InvalidChannelMode(Exception):
-    """
-
-    """
-
-    def __init__(self, message):
-        """
-
-        Args:
-            message:
-        """
-        self.message = message.strip()
-
-    def __repr__(self):
-        """
-
-        Returns:
-
-        """
-        return '%s: %s' % (self.__class__.__name__, self.message)
-
-    __str__ = __repr__
-
-
-class ZoneNotPresent(Exception):
-    """
-
-    """
-
-    def __init__(self, message):
-        """
-
-        Args:
-            message:
-        """
-        self.message = message.strip()
-
-    def __repr__(self):
-        """
-
-        Returns:
-
-        """
-        return '%s: %s' % (self.__class__.__name__, self.message)
-
-    __str__ = __repr__
+class InvalidAnalyticsType(CommonException):
+    pass

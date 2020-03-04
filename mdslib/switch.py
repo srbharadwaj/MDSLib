@@ -6,8 +6,10 @@ import re
 import requests
 import time
 
+from . import analytics
 from .connection_manager.connect_nxapi import ConnectNxapi
 from .connection_manager.errors import CLIError
+from .connection_manager.ssh import SSHSession
 from .module import Module
 from .nxapikeys import versionkeys
 from .parsers.system.shtopology import ShowTopology
@@ -52,7 +54,10 @@ class Switch(SwitchUtils):
         :param ip_address:
         :param username:
         :param password:
-        :param url:
+        :param connection_type:
+        :param port:
+        :param timeout:
+        :param verify_ssl:
         """
 
         self.__ip_address = ip_address
@@ -67,12 +72,29 @@ class Switch(SwitchUtils):
         self.__connection = ConnectNxapi(ip_address, username, password, transport=connection_type, port=port,
                                          verify_ssl=verify_ssl)
 
+        self._ssh_handle = SSHSession(host=ip_address, username=username, password=password, timeout=timeout)
         self.can_connect = False
         # Get version of the switch and log it
         self.log_version()
 
+    def __test_ssh_session(self):
+        out, error = self._ssh_handle.show("show run interface fc1/45")
+        print(''.join(out))
+        out, error = self._ssh_handle.config("interface fc1/45 ; shutdown")
+        print(''.join(out))
+        out, error = self._ssh_handle.show("show run interface fc1/45")
+        print(''.join(out))
+        out, error = self._ssh_handle.config("interface fc1/45 ; no shutdown")
+        print(''.join(out))
+        out, error = self._ssh_handle.show("show run interface fc1/45")
+        print(''.join(out))
+
     @log_exception(log)
     def log_version(self):
+        """
+
+        :return:
+        """
         try:
             log.debug(self.version)
             self.can_connect = True
@@ -83,22 +105,43 @@ class Switch(SwitchUtils):
 
     @property
     def ipaddr(self):
+        """
+
+        :return:
+        """
         return self.__ip_address
 
     @property
     def name(self):
+        """
+
+        :return:
+        """
         return self.show("show switchname", raw_text=True).strip()
 
     @name.setter
     def name(self, swname):
+        """
+
+        :param swname:
+        :return:
+        """
         self.config("switchname " + swname)
 
     @property
     def npv(self):
+        """
+
+        :return:
+        """
         return self.__is_npv_switch()
 
     @property
     def version(self):
+        """
+
+        :return:
+        """
         out = self.show("show version")
         if not out:
             return None
@@ -108,6 +151,10 @@ class Switch(SwitchUtils):
 
     @property
     def model(self):
+        """
+
+        :return:
+        """
         out = self.show("show version")
         if not out:
             return None
@@ -115,6 +162,10 @@ class Switch(SwitchUtils):
 
     @property
     def form_factor(self):
+        """
+
+        :return:
+        """
         chassisid = self.model
         if chassisid is not None:
             pat = "MDS\s+(.*)\((.*)\)\s+Chassis"
@@ -127,6 +178,10 @@ class Switch(SwitchUtils):
 
     @property
     def type(self):
+        """
+
+        :return:
+        """
         chassisid = self.model
         if chassisid is not None:
             pat = "MDS\s+(.*)\((.*)\)\s+Chassis"
@@ -139,6 +194,10 @@ class Switch(SwitchUtils):
 
     @property
     def modules(self):
+        """
+
+        :return:
+        """
         mlist = []
         out = self.show("show module")
         if not out:
@@ -155,6 +214,10 @@ class Switch(SwitchUtils):
 
     @property
     def image_string(self):
+        """
+
+        :return:
+        """
         ff = self.form_factor
         if ff in ["9706", "9710", "9718"]:
             mods = self.modules
@@ -181,6 +244,10 @@ class Switch(SwitchUtils):
 
     @property
     def kickstart_image(self):
+        """
+
+        :return:
+        """
         out = self.show("show version")
         if not out:
             return None
@@ -188,6 +255,10 @@ class Switch(SwitchUtils):
 
     @property
     def system_image(self):
+        """
+
+        :return:
+        """
         out = self.show("show version")
         if not out:
             return None
@@ -236,13 +307,11 @@ class Switch(SwitchUtils):
         return text_response_list
 
     def show(self, command, raw_text=False):
-        """Send a show command.
-        Args:
-            command (str): The command to send to the switch.
-        Keyword Args:
-            raw_text (bool): Whether to return raw text or structured data.
-        Returns:
-            The output of the show command, which could be raw text or structured data.
+        """
+
+        :param command: The command to send to the switch.
+        :param raw_text: Whether to return raw text or structured data.
+        :return: The output of the show command, which could be raw text or structured data.
         """
 
         commands = [command]
@@ -253,13 +322,12 @@ class Switch(SwitchUtils):
             return {}
 
     def show_list(self, commands, raw_text=False):
-        """Send a list of show commands.
-        Args:
-            commands (list): A list of commands to send to the switch.
-        Keyword Args:
-            raw_text (bool): Whether to return raw text or structured data.
-        Returns:
-            A list of outputs for each show command
+        """
+
+        :rtype: object
+        :param list commands:
+        :param bool raw_text:
+        :return:
         """
         return_list = []
         if raw_text:
@@ -281,6 +349,13 @@ class Switch(SwitchUtils):
         return return_list
 
     def config(self, command, rpc=u'2.0', method=u'cli'):
+        """
+
+        :param command:
+        :param rpc:
+        :param method:
+        :return:
+        """
         """Send a configuration command.
         Args:
             command (str): The command to send to the device.
@@ -458,3 +533,68 @@ class Switch(SwitchUtils):
         log.debug("Peer NPV list of switch : " + self.ipaddr + " are: ")
         log.debug(peerlist)
         return peerlist
+
+    # All analytics related APIs
+    def create_analytics_query(self, name, profile, clear=False, differential=False, interval=30):
+        out, err = analytics.create_analytics_query(self, name, profile, clear, differential, interval)
+        if len(err) != 0:
+            raise CLIError("create_analytics_query", ','.join(err))
+        returnval = ''.join(out)
+        if 'Syntax error' in returnval:
+            raise CLIError("create_analytics_query", returnval)
+        return returnval
+
+    def delete_analytics_query(self, name):
+        out, err = analytics.delete_analytics_query(self, name)
+        if len(err) != 0:
+            raise CLIError("delete_analytics_query", ','.join(err))
+        returnval = ''.join(out)
+        if 'Syntax error' in returnval:
+            raise CLIError("create_analytics_query", returnval)
+        return returnval
+
+    def show_analytics_query(self, name):
+        out, err = analytics.show_analytics_query(self, name)
+        if len(err) != 0:
+            raise CLIError("show_analytics_query", ','.join(err))
+        returnval = ''.join(out)
+        if 'Syntax error' in returnval:
+            raise CLIError("create_analytics_query", returnval)
+        elif 'No results for query' in returnval:
+            return None
+        else:
+            import json
+            d = json.loads(returnval)
+            return d['values']
+
+    def show_analytics(self, profile, clear=False, differential=False):
+        out, err = analytics.show_analytics(self, profile, clear, differential)
+        if len(err) != 0:
+            raise CLIError("show_analytics", ','.join(err))
+        returnval = ''.join(out)
+        if 'Syntax error' in returnval:
+            raise CLIError("create_analytics_query", returnval)
+        if 'Table is empty for query' in returnval:
+            return None
+        else:
+            import json
+            d = json.loads(returnval)
+            return d['values']
+
+    def clear_analytics(self, profile):
+        out, err = analytics.clear_analytics(self, profile)
+        if len(err) != 0:
+            raise CLIError("clear_analytics", ','.join(err))
+        returnval = ''.join(out)
+        if 'Syntax error' in returnval:
+            raise CLIError("create_analytics_query", returnval)
+        return returnval
+
+    def purge_analytics(self, profile):
+        out, err = analytics.purge_analytics(self, profile)
+        if len(err) != 0:
+            raise CLIError("purge_analytics", ','.join(err))
+        returnval = ''.join(out)
+        if 'Syntax error' in returnval:
+            raise CLIError("create_analytics_query", returnval)
+        return returnval

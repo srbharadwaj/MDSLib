@@ -240,6 +240,8 @@ class DeviceAlias(object):
         log.debug(cmd)
         out = self.__swobj.config(cmd)
         if out is not None:
+            if out['msg'].find("There are no pending changes"):
+                log.debug("The commit command was not executed because Device Alias already present")
             if out['msg'].find("Device-alias enhanced zone member present"):
                 log.debug(out)
                 log.error("Device-alias enhanced zone member present")

@@ -56,7 +56,7 @@ fobj = Fc(sw, name="fc1/1")
 # fobj.description = "Desc test"
 fobj.description = "123 Description of maximum 254 charactersDescription of maximum 254 charactersDescription of maximum 254 charactersDescription of maximum 254 charactersDescription of maximum 254 charactersDescription of maximum 254 charactersDescription of maximum 254 c"
 print(fobj.description)
-time.sleep(1000000)
+# time.sleep(1000000)
 fobj.out_of_service = True
 print(fobj.status)
 fobj.out_of_service = False

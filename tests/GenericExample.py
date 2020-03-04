@@ -39,6 +39,7 @@ print("Sw interfaces: ")
 print(sw.interfaces)
 print(dir(sw))
 time.sleep(1)
+
 # #######################################
 # Output of the above prints are as follows
 # #######################################

@@ -11,7 +11,7 @@ from mdslib.switch import Switch
 user = 'admin'
 pw = 'nbv!2345'
 ip_address = '10.126.94.104'
-ip_address1 = '10.126.94.109'
+ip_address1 = '10.126.94.185'
 
 p = 8443
 
@@ -25,7 +25,7 @@ p = 8443
 #     verify_ssl=False)
 
 sw = Switch(
-    ip_address=ip_address1,
+    ip_address=ip_address,
     username=user,
     password=pw,
     connection_type='https',

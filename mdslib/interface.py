@@ -23,10 +23,19 @@ class Interface(object):
 
     @property
     def name(self):
+        """
+
+        :return:
+        """
         return self._name
 
     @property
     def description(self):
+        """
+        Get the description of the interface
+        :rtype: object
+        :return: 
+        """
         out = self.__swobj.show("show interface  " + self._name + " description")
         desc = out['TABLE_interface']['ROW_interface']['description']
         # IF the string is a big one then the return element is of type list
@@ -38,6 +47,10 @@ class Interface(object):
 
     @description.setter
     def description(self, value):
+        """
+        Set the description of the interface
+        :param str value: Description string
+        """
         cmd = "interface " + self._name + " ; switchport description  " + value
         log.debug("Sending the cmd: " + cmd)
         out = self.__swobj.config(cmd)
@@ -152,6 +165,10 @@ class Interface(object):
         @property
         def total_stats(self):
             out = self.__intobj._execute_counters_detailed_cmd()
+            z = out['TABLE_counters']['ROW_counters']
+            for k, v in z.items():
+                if 'total' in k:
+                    print(k, v)
             total = out.get('TABLE_total', None)
             if total is not None:
                 return total.get('ROW_total', None)

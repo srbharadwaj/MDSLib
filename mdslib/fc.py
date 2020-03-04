@@ -1,9 +1,11 @@
 import logging
 import re
 
+from .connection_manager.errors import CLIError
 from .constants import SHUTDOWN, NO_SHUTDOWN
 from .interface import Interface
 from .nxapikeys import interfacekeys
+from .utility.allexceptions import InvalidAnalyticsType
 
 log = logging.getLogger(__name__)
 
@@ -34,6 +36,54 @@ class Fc(Interface):
     @property
     def transceiver(self):
         return self.Transceiver(self)
+
+    @property
+    def analytics_type(self):
+        is_scsi = False
+        is_nvme = False
+        pat = "analytics type fc-(.*)"
+        cmd = "show running-config interface " + self.name + " | grep analytics "
+        out, error = self.__swobj._ssh_handle.show(cmd)
+        if len(error) != 0:
+            raise CLIError(cmd, error)
+        else:
+            for eachline in out:
+                newline = eachline.strip().strip("\n")
+                m = re.match(pat, newline)
+                if m:
+                    type = m.group(1)
+                    if type == 'scsi':
+                        is_scsi = True
+                    if type == 'nvme':
+                        is_nvme = True
+        if is_scsi:
+            if is_nvme:
+                return 'all'
+            else:
+                return 'scsi'
+        elif is_nvme:
+            return 'nvme'
+        else:
+            return None
+
+    @analytics_type.setter
+    def analytics_type(self, type):
+        if type is None:
+            cmd = "no analytics type fc-all"
+        elif type == 'scsi':
+            cmd = "no analytics type fc-all ; analytics type fc-scsi"
+        elif type == 'nvme':
+            cmd = "no analytics type fc-all ; analytics type fc-nvme"
+        elif type == 'all':
+            cmd = "analytics type fc-all"
+        else:
+            raise InvalidAnalyticsType(
+                "Invalid analytics type '" + type + "'. Valid types are scsi,nvme,all,None(to disable analytics type)")
+
+        cmdtosend = "interface " + self.name + " ; " + cmd
+        out, error = self.__swobj._ssh_handle.config(cmdtosend)
+        if len(error) != 0:
+            raise CLIError(cmd, error)
 
     def _execute_transceiver_cmd(self):
         result = {}
