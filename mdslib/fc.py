@@ -2,10 +2,10 @@ import logging
 import re
 
 from .connection_manager.errors import CLIError
-from .constants import SHUTDOWN, NO_SHUTDOWN
+from .constants import SHUTDOWN, NO_SHUTDOWN, PAT_FC
 from .interface import Interface
 from .nxapikeys import interfacekeys
-from .utility.allexceptions import InvalidAnalyticsType
+from .utility.allexceptions import InvalidAnalyticsType, InvalidInterface
 
 log = logging.getLogger(__name__)
 
@@ -13,6 +13,11 @@ log = logging.getLogger(__name__)
 class Fc(Interface):
 
     def __init__(self, switch, name):
+        fcmatch = re.match(PAT_FC, name)
+        if not fcmatch:
+            raise InvalidInterface(
+                "Interface name " + str(name) + " is not correct, name must be 'fc' interface. Example: 'fc1/2'. ")
+        # TODO, need to validate more, about port number and module number as well
         super().__init__(switch, name)
         self.__swobj = switch
 

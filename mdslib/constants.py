@@ -1,6 +1,6 @@
 # Patterns
-PAT_FC = "fc([0-9]+)/([0-9]+)"
-PAT_PC = "port-channel([0-9]+)"
+PAT_FC = "^fc([1-9][0-9]?)/([1-9][0-9]?)$"
+PAT_PC = "^port-channel([1-9][0-9]?[0-9]?)$"
 PAT_FCIP = "fcip([0-9]+)"
 PAT_WWN = "([0-9,a-f]{1,2}:){7}[0-9,a-f]{1,2}"
 

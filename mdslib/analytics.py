@@ -1,6 +1,13 @@
 import logging
 
+from .utility.allexceptions import CommonException
+
 log = logging.getLogger(__name__)
+
+
+class InvalidProfile(CommonException):
+    pass
+
 
 # protocol: scsi
 # metrics: [port, total_read_io_time, total_write_io_time] - - default[] all
@@ -24,6 +31,7 @@ log = logging.getLogger(__name__)
 METRICS = 'metrics'
 PROTOCOL = 'protocol'
 VIEW = 'view'
+VALID_PROTOCOLS = ['scsi', 'nvme']
 
 
 def _validate_profile(profile):
@@ -31,6 +39,20 @@ def _validate_profile(profile):
     # LIMITATIONS:
     # Need to do validation for profiles
     # Does not support where clause for now
+    proto = profile.get(PROTOCOL, None)
+    metrics = profile.get(PROTOCOL, None)
+    view = profile.get(PROTOCOL, None)
+    if proto is None:
+        raise InvalidProfile(
+            "'" + PROTOCOL + "' key is missing from the profile, this is mandatory and it needs to one of " + ",".join(
+                VALID_PROTOCOLS))
+    if metrics is None:
+        raise InvalidProfile(
+            "'" + METRICS + "' key is missing from the profile, this is mandatory. A blank list represents 'all'")
+    if view is None:
+        raise InvalidProfile("'" + VIEW + "' key is missing from the profile, this is mandatory")
+    if proto not in VALID_PROTOCOLS:
+        raise InvalidProfile("'" + PROTOCOL + "' key needs to one of " + ",".join(VALID_PROTOCOLS))
 
     return True
 

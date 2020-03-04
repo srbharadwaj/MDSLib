@@ -141,6 +141,7 @@ class Switch(SwitchUtils):
         """
 
         :return:
+        :rtype:
         """
         out = self.show("show version")
         if not out:
