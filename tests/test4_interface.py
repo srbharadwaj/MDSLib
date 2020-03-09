@@ -53,7 +53,7 @@ sw = sw121
 from mdslib.fc import Fc
 
 fobj = Fc(sw, name="fc1/1")
-#fobj = Fc(sw, name="port-chanel1")
+# fobj = Fc(sw, name="port-chanel1")
 # fobj.description = "Desc test"
 fobj.description = "123 Description of maximum 254 charactersDescription of maximum 254 charactersDescription of maximum 254 charactersDescription of maximum 254 charactersDescription of maximum 254 charactersDescription of maximum 254 charactersDescription of maximum 254 c"
 print(fobj.description)

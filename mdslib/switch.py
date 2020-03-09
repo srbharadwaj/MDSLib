@@ -6,7 +6,7 @@ import re
 import requests
 import time
 
-from . import analytics
+from .analytics import Analytics
 from .connection_manager.connect_nxapi import ConnectNxapi
 from .connection_manager.errors import CLIError
 from .connection_manager.ssh import SSHSession
@@ -264,6 +264,10 @@ class Switch(SwitchUtils):
         if not out:
             return None
         return out[versionkeys.ISAN_FILE]
+
+    @property
+    def analytics(self):
+        return Analytics(self)
 
     def _cli_error_check(self, command_response):
         error = command_response.get(u'error')
@@ -534,68 +538,3 @@ class Switch(SwitchUtils):
         log.debug("Peer NPV list of switch : " + self.ipaddr + " are: ")
         log.debug(peerlist)
         return peerlist
-
-    # All analytics related APIs
-    def create_analytics_query(self, name, profile, clear=False, differential=False, interval=30):
-        out, err = analytics.create_analytics_query(self, name, profile, clear, differential, interval)
-        if len(err) != 0:
-            raise CLIError("create_analytics_query", ','.join(err))
-        returnval = ''.join(out)
-        if 'Syntax error' in returnval:
-            raise CLIError("create_analytics_query", returnval)
-        return returnval
-
-    def delete_analytics_query(self, name):
-        out, err = analytics.delete_analytics_query(self, name)
-        if len(err) != 0:
-            raise CLIError("delete_analytics_query", ','.join(err))
-        returnval = ''.join(out)
-        if 'Syntax error' in returnval:
-            raise CLIError("create_analytics_query", returnval)
-        return returnval
-
-    def show_analytics_query(self, name):
-        out, err = analytics.show_analytics_query(self, name)
-        if len(err) != 0:
-            raise CLIError("show_analytics_query", ','.join(err))
-        returnval = ''.join(out)
-        if 'Syntax error' in returnval:
-            raise CLIError("create_analytics_query", returnval)
-        elif 'No results for query' in returnval:
-            return None
-        else:
-            import json
-            d = json.loads(returnval)
-            return d['values']
-
-    def show_analytics(self, profile, clear=False, differential=False):
-        out, err = analytics.show_analytics(self, profile, clear, differential)
-        if len(err) != 0:
-            raise CLIError("show_analytics", ','.join(err))
-        returnval = ''.join(out)
-        if 'Syntax error' in returnval:
-            raise CLIError("create_analytics_query", returnval)
-        if 'Table is empty for query' in returnval:
-            return None
-        else:
-            import json
-            d = json.loads(returnval)
-            return d['values']
-
-    def clear_analytics(self, profile):
-        out, err = analytics.clear_analytics(self, profile)
-        if len(err) != 0:
-            raise CLIError("clear_analytics", ','.join(err))
-        returnval = ''.join(out)
-        if 'Syntax error' in returnval:
-            raise CLIError("create_analytics_query", returnval)
-        return returnval
-
-    def purge_analytics(self, profile):
-        out, err = analytics.purge_analytics(self, profile)
-        if len(err) != 0:
-            raise CLIError("purge_analytics", ','.join(err))
-        returnval = ''.join(out)
-        if 'Syntax error' in returnval:
-            raise CLIError("create_analytics_query", returnval)
-        return returnval
