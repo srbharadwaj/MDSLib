@@ -8,6 +8,18 @@ log = logging.getLogger(__name__)
 
 
 class Interface(object):
+    """
+    Interface module
+
+    :param switch: switch object on which vsan operations need to be executed
+    :type switch: Switch
+    :param name: name of the interface
+    :type name: str
+
+    .. warning:: Interface class is a Base class and cannot be instantiated, please use specific interface classes(Child/Derived class)
+                like Fc,PortChannel etc.. to instantiate
+    """
+
     def __init__(self, switch, name):
         self.__swobj = switch
         self._name = name

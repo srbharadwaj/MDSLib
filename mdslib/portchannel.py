@@ -11,6 +11,20 @@ log = logging.getLogger(__name__)
 
 
 class PortChannel(Interface):
+    """
+    PortChannel interface module
+    extends Interface module
+
+    :param switch: switch object
+    :type switch: Switch
+    :param id: id of port-channel interface
+    :type id: int
+    :raises InvalidPortChannelRange: when it is not within 1 to 256
+    :example:
+        >>> pcobj = PortChannel(switch = switch_obj, id = 1)
+
+    """
+
     def __init__(self, switch, id):
         if id not in VALID_PC_RANGE:
             raise InvalidPortChannelRange("Port channel id " + str(id) + " is invalid, id should range from " + str(
@@ -22,10 +36,47 @@ class PortChannel(Interface):
 
     @property
     def id(self):
+        """
+        Returns port-channel id
+
+        :return: id of port-channel
+        :rtype: int
+        :example:
+            >>> pcobj = PortChannel(switch = switch_obj, id = 1)
+            >>> print(pcobj.id)
+            1
+            >>>
+        """
+
         return self._id
 
     @property
     def channel_mode(self):
+        """
+        set or get the channel mode of the port-channel
+
+        :getter:
+        :return: Returns the channel mode of the port-channel
+        :rtype: str
+        :example:
+            >>> pcobj = PortChannel(switch = switch_obj, id = 1)
+            >>> print(pcobj.channel_mode)
+            active
+            >>>
+
+        :setter:
+        :param mode: mode to which port-channel mode needs to be set
+        :type mode: str
+        :values: 'on', 'active'
+        :raises InvalidChanelMode: if mode is not 'on' or 'active'
+        :raises PortChannelNotPresent: if port-channel is not present on the switch
+        :example:
+            >>> pcobj = PortChannel(switch = switch_obj, id = 1)
+            >>> pcobj.channel_mode = 'active'
+            >>>
+
+        """
+
         if not self.__is_pc_present():
             return None
         detailout = self.__get_pc_facts()
@@ -40,7 +91,7 @@ class PortChannel(Interface):
                 return allmem[portchanelkeys.OPER_CHN_MODE]
             else:
                 # it means there is more than one member in the port-channel
-                # get the one of the member in the port-channel and return its channel mode
+                # get one of the member in the port-channel and return its channel mode
                 onemem = allmem[0]
                 return onemem[portchanelkeys.OPER_CHN_MODE]
 
@@ -61,6 +112,13 @@ class PortChannel(Interface):
 
     @property
     def members(self):
+        """
+        Get the members of the port-channel
+
+        :return:members of the port-channel in dictionary format, None if port-channel is not present or port-channel has no members
+        :rtype: dict(name: obj(Fc))
+        """
+
         if not self.__is_pc_present():
             return None
         detailout = self.__get_pc_facts()
@@ -90,24 +148,69 @@ class PortChannel(Interface):
         return retelements
 
     def create(self):
+        """
+        Creates port-channel on switch
+
+        :example:
+            >>> pcobj = PortChannel(switch = switch_obj, id = 1)
+            >>> pcobj.create()
+        """
+
         cmd = "interface port-channel " + str(self._id)
         self.__swobj.config(cmd)
 
     def delete(self):
+        """
+        Deletes port-channel on switch
+
+        :example:
+            >>> pcobj = PortChannel(switch = switch_obj, id = 1)
+            >>> pcobj.delete()
+        """
+
         if self.__is_pc_present():
             cmd = "no interface port-channel " + str(self._id)
             self.__swobj.config(cmd)
 
     def add_members(self, interfaces):
+        """
+        Add Fc members to the port channel
+
+        :param interfaces: list of Fc interfaces to be added
+        :type interfaces: list(Fc)
+        :raises PortChannelNotPresent: if port channel is not present on switch
+
+        :example:
+            >>> pcobj = PortChannel(switch = switch_obj, id = 1)
+            >>> pcobj.create()
+            >>> fc1 = Fc( switch = switch_obj, name = "fc1/1")
+            >>> fc2 = Fc( switch = switch_obj, name = "fc1/2")
+            >>> pcobj.add_members([fc1,fc2])
+            >>>
+
+        """
+
         if not self.__is_pc_present():
             raise PortChannelNotPresent(
                 "Port channel " + str(self._id) + " is not present on the switch, please create the PC first")
-
         for eachint in interfaces:
             cmd = "interface " + eachint.name + " ; channel-group " + str(self._id) + " force "
             out = self.__swobj.config(cmd)
 
     def remove_members(self, interfaces):
+        """
+        Remove Fc members from the port channel
+
+        :param interfaces: list of Fc interfaces to be removed
+        :type interfaces: list(Fc)
+        :raises PortChannelNotPresent: if port channel is not present on switch
+
+        :example:
+            >>>
+            >>> pcobj.remove_members([fc1,fc2])
+            >>>
+
+        """
         if not self.__is_pc_present():
             raise PortChannelNotPresent(
                 "Port channel " + str(self._id) + " is not present on the switch, please create the PC first")

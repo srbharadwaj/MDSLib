@@ -48,8 +48,10 @@ print("switch kick img is : " + str(sw.kickstart_image))
 print("switch sys img is : " + str(sw.system_image))
 print("switch img str is : " + str(sw.image_string))
 allint = sw.interfaces
-for eachint in allint:
-    print(eachint.name)
+print(allint)
+for intname, eachint_obj in allint.items():
+    print(intname)
+    print(eachint_obj)
 print(sw.vsans)
 banner("end")
 

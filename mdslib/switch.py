@@ -10,7 +10,6 @@ from .analytics import Analytics
 from .connection_manager.connect_nxapi import ConnectNxapi
 from .connection_manager.errors import CLIError
 from .connection_manager.ssh import SSHSession
-from .module import Module
 from .nxapikeys import versionkeys
 from .parsers.system.shtopology import ShowTopology
 from .utility._switch_utility import SwitchUtils
@@ -45,20 +44,28 @@ def log_exception(logger):
 
 class Switch(SwitchUtils):
     """
-    The is a switch __connection class which is used to discover switch via nxapi
+    Switch module
+    :param ip_address: mgmt ip address of switch
+    :type ip_address: str
+    :param username: username
+    :type id: str
+    :param password: password
+    :type password: str
+    :param connection_type: connection type 'http' or 'https'(optional, default: 'https')
+    :type connection_type: str
+    :param port: port number (optional, default: 8443)
+    :type port: int
+    :param timeout: timeout period in seconds (optional, default: 30)
+    :type timeout: int
+    :param verify_ssl: SSL verification (optional, default: True)
+    :type verify_ssl: bool
+
+    :example:
+        >>> switch_obj = Switch(ip_address = switch_ip, username = switch_username, password = switch_password )
+
     """
 
     def __init__(self, ip_address, username, password, connection_type='https', port=8443, timeout=30, verify_ssl=True):
-        """
-
-        :param ip_address:
-        :param username:
-        :param password:
-        :param connection_type:
-        :param port:
-        :param timeout:
-        :param verify_ssl:
-        """
 
         self.__ip_address = ip_address
         self.__username = username
@@ -77,18 +84,6 @@ class Switch(SwitchUtils):
         # Get version of the switch and log it
         self.log_version()
 
-    def __test_ssh_session(self):
-        out, error = self._ssh_handle.show("show run interface fc1/45")
-        print(''.join(out))
-        out, error = self._ssh_handle.config("interface fc1/45 ; shutdown")
-        print(''.join(out))
-        out, error = self._ssh_handle.show("show run interface fc1/45")
-        print(''.join(out))
-        out, error = self._ssh_handle.config("interface fc1/45 ; no shutdown")
-        print(''.join(out))
-        out, error = self._ssh_handle.show("show run interface fc1/45")
-        print(''.join(out))
-
     @log_exception(log)
     def log_version(self):
         """
@@ -106,17 +101,43 @@ class Switch(SwitchUtils):
     @property
     def ipaddr(self):
         """
+        Get mgmt ip address of the switch
 
-        :return:
+        :return: IP address of switch
+        :rtype: str
+        :example:
+            >>> print(switch_obj.ipaddr)
+            10.126.94.101
+            >>>
         """
+
         return self.__ip_address
 
     @property
     def name(self):
         """
+        get switchname or
+        set switchname
 
-        :return:
+        :getter:
+        :return: switch name
+        :rtype: str
+        :example:
+            >>> print(switch_obj.name)
+            swTest
+            >>>
+
+        :setter:
+        :param name: name of the switch that needs to be set
+        :type name: str
+        :example:
+            >>> switch_obj.name = "yourswitchname"
+            >>>
+
+        .. warning:: Switch name must start with a letter, end with alphanumeric and contain alphanumeric and hyphen only. Max size 32.
+
         """
+
         return self.show("show switchname", raw_text=True).strip()
 
     @name.setter
@@ -131,21 +152,36 @@ class Switch(SwitchUtils):
     @property
     def npv(self):
         """
+        Check if switch is in NPV mode
 
-        :return:
+        :return: Returns True if switch is in NPV, else returns False
+        :rtype: bool
+        :example:
+            >>> print(switch_obj.npv)
+            False
+            >>>
         """
+
         return self.__is_npv_switch()
 
     @property
     def version(self):
         """
+        Get the switch software version
 
-        :return:
-        :rtype:
+        :return: version
+        :rtype: str
+        :raises CLIError: Raises if there was a command error or some generic error due to which version could not be fetched
+        :example:
+            >>> print(switch_obj.version)
+            8.4(1)
+            >>>
         """
+
         out = self.show("show version")
         if not out:
-            return None
+            raise CLIError("show version",
+                           'Unable to fetch the switch software version using show version command. Need to debug further')
         fullversion = out[versionkeys.VER_STR]
         ver = fullversion.split()[0]
         return ver
@@ -153,8 +189,17 @@ class Switch(SwitchUtils):
     @property
     def model(self):
         """
+        Returns model of the switch
 
-        :return:
+        :return: Returns model of the switch or returns None if model could not be fetched from the switch
+        :rtype: str
+        :example:
+            >>> print(switch_obj.model)
+            MDS 9710 (10 Slot) Chassis
+            >>>
+            >>> print(switch2_obj.model)
+            MDS 9396T 96X32G FC (2 RU) Chassis
+            >>>
         """
         out = self.show("show version")
         if not out:
@@ -164,9 +209,19 @@ class Switch(SwitchUtils):
     @property
     def form_factor(self):
         """
+        Returns the form factor of the switch, i.e if its a 10 slot or 6 slot or 1RU or 2RU etc..
 
-        :return:
+        :return: Returns form factor of the switch or returns None if form factor could not be fetched from the switch
+        :rtype: str
+        :example:
+            >>> print(switch_obj.form_factor)
+            10 slot
+            >>>
+            >>> print(switch2_obj.form_factor)
+            2 RU
+            >>>
         """
+
         chassisid = self.model
         if chassisid is not None:
             pat = "MDS\s+(.*)\((.*)\)\s+Chassis"
@@ -180,9 +235,20 @@ class Switch(SwitchUtils):
     @property
     def type(self):
         """
+        Returns the type of the switch, i.e if its a 9710 or 9706 or 9396T etc..
 
-        :return:
+        :return: Returns type of the switch or returns None if type could not be fetched from the switch
+        :rtype: str
+        :example:
+            >>> print(switch_obj.type)
+            9710
+            >>>
+            >>> print(switch2_obj.type)
+            9396T
+            >>>
+
         """
+
         chassisid = self.model
         if chassisid is not None:
             pat = "MDS\s+(.*)\((.*)\)\s+Chassis"
@@ -194,31 +260,22 @@ class Switch(SwitchUtils):
         return None
 
     @property
-    def modules(self):
-        """
-
-        :return:
-        """
-        mlist = []
-        out = self.show("show module")
-        if not out:
-            return None
-        modinfo = out['TABLE_modinfo']['ROW_modinfo']
-        # For 1RU switch modinfo is a dict
-        if type(modinfo) is dict:
-            modinfo = [modinfo]
-
-        for eachmodinfo in modinfo:
-            m = Module(self, eachmodinfo['modinf'], eachmodinfo)
-            mlist.append(m)
-        return mlist
-
-    @property
     def image_string(self):
         """
+        Returns the image's string that is specific to a particular platform example m9700-sf3ek9, m9100-s6ek9 etc..
 
-        :return:
+        :return: Returns image string of the switch or returns None if image string could not be fetched from the switch
+        :rtype: str
+        :example:
+            >>> print(switch_obj.image_string)
+            m9700-sf3ek9
+            >>>
+            >>> print(switch2_obj.image_string)
+            m9300-s2ek9
+            >>>
+
         """
+
         ff = self.form_factor
         if ff in ["9706", "9710", "9718"]:
             mods = self.modules
@@ -246,9 +303,19 @@ class Switch(SwitchUtils):
     @property
     def kickstart_image(self):
         """
+        Returns the kickstart image of the switch
 
-        :return:
+        :return: Returns kickstart image of the switch or returns None if kickstart image could not be fetched from the switch
+        :rtype: str
+        :example:
+            >>> print(switch_obj.kickstart_image)
+            bootflash:///m9700-sf3ek9-kickstart-mz.8.4.1.bin
+            >>>
+            >>> print(switch2_obj.kickstart_image)
+            bootflash:///m9300-s2ek9-kickstart-mz.8.4.1.bin
+            >>>
         """
+
         out = self.show("show version")
         if not out:
             return None
@@ -257,8 +324,17 @@ class Switch(SwitchUtils):
     @property
     def system_image(self):
         """
+        Returns the system image of the switch
 
-        :return:
+        :return: Returns system image of the switch or returns None if system image could not be fetched from the switch
+        :rtype: str
+        :example:
+            >>> print(switch_obj.system_image)
+            bootflash:///m9700-sf3ek9-mz.8.4.1.bin
+            >>>
+            >>> print(switch2_obj.system_image)
+            bootflash:///m9300-s2ek9-mz.8.4.1.bin
+            >>>
         """
         out = self.show("show version")
         if not out:
@@ -267,6 +343,16 @@ class Switch(SwitchUtils):
 
     @property
     def analytics(self):
+        """
+        Returns handler for analytics module, using which we could do analytics related operations
+
+        :return: analytics handler
+        :rtype: Analytics
+        :example:
+            >>> ana_handler = switch_obj.analytics
+            >>>
+        """
+
         return Analytics(self)
 
     def _cli_error_check(self, command_response):

@@ -3,7 +3,8 @@ import re
 
 from .. import constants
 from ..fc import Fc
-from ..nxapikeys import interfacekeys, vsankeys, zonekeys
+from ..module import Module
+from ..nxapikeys import interfacekeys, vsankeys, zonekeys, modulekeys
 from ..portchannel import PortChannel
 from ..vsan import Vsan
 from ..zone import Zone
@@ -15,6 +16,20 @@ class SwitchUtils:
 
     @property
     def interfaces(self):
+        """
+        Returns all the interfaces of the switch in dictionary format(interface name:interface object)
+
+        :return: Returns all the interfaces(Fc and PortChannel) on the switch in dictionary format(interface name:interface object)
+        :rtype: dict(name:Interface)
+        :example:
+            >>> allint = sw.interfaces
+            >>> print(allint)
+            {'fc1/1': <mdslib.fc.Fc object at 0x10bd5da90>, 'fc1/2': <mdslib.fc.Fc object at 0x10bde4050>, 'fc1/3': <mdslib.fc.Fc object at 0x10bd5d650>,
+             'fc1/4': <mdslib.fc.Fc object at 0x10bd5df90>, 'fc1/5': <mdslib.fc.Fc object at 0x10bd5d9d0>, .....
+             'port-channel212': <mdslib.portchannel.PortChannel object at 0x10d88ee90>, 'port-channel213': <mdslib.portchannel.PortChannel object at 0x10d88eed0>,
+             'port-channel214': <mdslib.portchannel.PortChannel object at 0x10d88ef50>}
+            >>>
+        """
         retlist = {}
         cmd = "show interface brief"
         out = self.show(cmd)
@@ -48,6 +63,20 @@ class SwitchUtils:
 
     @property
     def vsans(self):
+        """
+        Returns all the vsans present on the switch in dictionary format(vsan-id:vsan object)
+
+        :return: Returns all the vsans present on the switch in dictionary format(vsan-id:vsan object)
+        :rtype: dict(vsan-id:Vsan)
+        :example:
+            >>> allvsans = sw.vsans
+            >>> print(allvsans)
+            {'1': <mdslib.vsan.Vsan object at 0x10d88a290>, '10': <mdslib.vsan.Vsan object at 0x10d88a1d0>,
+             '11': <mdslib.vsan.Vsan object at 0x10d88a150>,  .....
+             '499': <mdslib.vsan.Vsan object at 0x10bdee650>, '4079': <mdslib.vsan.Vsan object at 0x10bdee0d0>,
+             '4094': <mdslib.vsan.Vsan object at 0x10bdee150>}
+            >>>
+        """
         retlist = {}
         cmd = "show vsan"
         out = self.show(cmd)['TABLE_vsan']['ROW_vsan']
@@ -58,7 +87,13 @@ class SwitchUtils:
         return retlist
 
     @property
+    def zonesets(self):
+        # TODO
+        raise NotImplementedError
+
+    @property
     def zones(self):
+        # TODO
         retlist = {}
         cmd = "show zone"
         out = self.show(cmd)
@@ -74,8 +109,8 @@ class SwitchUtils:
                 zname = eachzone.get(zonekeys.NAME)
                 zobj = Zone(switch=self, vsan_obj=vobj, name=zname)
                 listofzones = retlist.get(vsanid, None)
-                print(vsanid)
-                print(zname)
+                # print(vsanid)
+                # print(zname)
                 if listofzones is None:
                     listofzones = [zobj]
                 else:
@@ -83,3 +118,63 @@ class SwitchUtils:
                 retlist[vsanid] = listofzones
             return retlist
         return None
+
+    @property
+    def modules(self):
+        """
+        Returns a list of modules present on the switch
+
+        :return: list of modules present on the switch
+        :rtype: list(Module)
+        :example:
+            >>> mods = sw.modules
+            >>> for eachmod in mods:
+            ...     print("mod status is    : " + eachmod.status)
+            ...     print("mod ports is     : " + str(eachmod.ports))
+            ...     print("mod modtype is   : " + eachmod.module_type)
+            ...     print("mod model is     : " + eachmod.model)
+            ...     print("mod modnumber is : " + str(eachmod.module_number))
+            ...     print("")
+            >>>
+            >>>
+            mod status is    : ok
+            mod ports is     : 48
+            mod modtype is   : 2/4/8/10/16 Gbps Advanced FC Module
+            mod model is     : DS-X9448-768K9
+            mod modnumber is : 1
+
+            mod status is    : ok
+            mod ports is     : 48
+            mod modtype is   : 4/8/16/32 Gbps Advanced FC Module
+            mod model is     : DS-X9648-1536K9
+            mod modnumber is : 3
+
+            mod status is    : ok
+            mod ports is     : 48
+            mod modtype is   : 2/4/8/10/16 Gbps Advanced FC Module
+            mod model is     : DS-X9448-768K9
+            mod modnumber is : 4
+
+            mod status is    : active
+            mod ports is     : 0
+            mod modtype is   : Supervisor Module-3
+            mod model is     : DS-X97-SF1-K9
+            mod modnumber is : 5
+            >>>
+            >>>
+
+        """
+
+        mlist = []
+        out = self.show("show module")
+        if not out:
+            return None
+        modinfo = out['TABLE_modinfo']['ROW_modinfo']
+        # For 1RU switch modinfo is a dict
+        if type(modinfo) is dict:
+            modinfo = [modinfo]
+
+        for eachmodinfo in modinfo:
+            m = Module(self, eachmodinfo[modulekeys.MOD_NUM], eachmodinfo)
+            mlist.append(m)
+        return mlist

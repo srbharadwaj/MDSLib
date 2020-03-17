@@ -12,12 +12,37 @@ log = logging.getLogger(__name__)
 
 
 class Vsan(object):
+    """
+    Vsan module
+
+    :param switch: switch object on which vsan operations need to be executed
+    :type switch: Switch
+    :param id: vsan ID
+    :type id: int
+
+    :example:
+        >>> vsan_obj = Vsan(switch = switch_obj, id = 2)
+
+    Optional for preview
+    .. warning:: id must be within range 1-4094 (4079,4094 are reserved)
+
+            """
+
     def __init__(self, switch, id):
         self.__swobj = switch
         self._id = id
 
     @property
     def id(self):
+        """
+        Get vsan id
+
+        :return: id of the vsan if vsan is present on the switch, otherwise returns None
+        :rtype: int
+        :range: 1 to 4094
+
+        """
+
         try:
             out = self.__get_facts()
         except VsanNotPresent:
@@ -30,6 +55,28 @@ class Vsan(object):
 
     @property
     def name(self):
+        """
+        Get the name of the vsan or
+        Set the name of the vsan
+
+        :getter:
+        :return: name of the vsan,
+                 returns None if vsan is not present on the switch
+        :rtype: str
+        :example:
+            >>> print(vsan_obj.name)
+            "VSAN0001"
+            >>>
+
+        :setter:
+        :param name: name of the vsan
+        :type name: str
+
+        :example:
+            >>> vsan_obj.name = "vsan_2"
+
+        """
+
         try:
             out = self.__get_facts()
         except VsanNotPresent:
@@ -44,6 +91,15 @@ class Vsan(object):
 
     @property
     def state(self):
+        """
+        Get the state of the vsan
+
+        :return: state of the vsan
+                 returns None if vsan is not present on the switch
+        :values: return values are either 'active' or 'suspended'
+
+        """
+
         try:
             out = self.__get_facts()
         except VsanNotPresent:
@@ -99,14 +155,48 @@ class Vsan(object):
 
     # suspend property
     suspend = property(fset=_set_suspend)
+    """
+    Set the state of the vsan
+
+    :setter:
+    :param value: if true suspends the vsan, else does a 'no suspend' 
+    :type value: bool
+    :raises TypeError: If the passed value is not of type bool
+
+    :example:
+        >>> vsan_obj.suspend = True
+
+    """
 
     def create(self, name=None):
+        """Creates vsan on the switch
+
+        :param name: name of vsan (optional parameter, defaults to 'VSAN<vsan-id>' if passed as None)
+        :type name: str or None
+        :return: None
+
+        :example:
+            >>> vsan_obj.create("vsan_2")
+
+        """
+
         cmd = "vsan database ; vsan " + str(self._id)
         if name is not None:
             cmd = cmd + " name '" + name + "'"
         self.__swobj.config(cmd)
 
     def delete(self):
+        """Deletes the vsan on the switch
+
+        :param: None
+        :return: None
+        :raises VsanNotPresent: if vsan is not present on the switch
+
+        :example:
+            >>> vsan_obj.delete()
+
+        """
+
         try:
             cmd = "terminal dont-ask ; " \
                   "vsan database ; " \
@@ -122,6 +212,26 @@ class Vsan(object):
             self.__swobj.config(cmd)
 
     def add_interfaces(self, interfaces):
+        """Add interfaces to the vsan
+
+        :param interfaces: interfaces to be added to the vsan
+        :type interfaces: list(Fc or PortChannel)
+        :raises VsanNotPresent: if vsan is not present on the switch
+        :raises InvalidInterface: if the interface is not among supported interface types (‘fc’ and ‘port-channel’)
+        :raises CLIError: if the switch raises a error for the cli command passed
+        :return: None
+
+        :example:
+            >>> fc = Fc(switch,"fc1/1")
+            >>> pc = PortChannel(switch,1)
+            >>> vsan_obj.add_interfaces([fc,pc])
+            >>> vsan_obj.add_interfaces(fc)
+            Traceback (most recent call last):
+            ...
+            TypeError: Fc object is not iterable
+
+        """
+
         if self.id is None:
             raise VsanNotPresent("Vsan " + str(self._id) + " is not present on the switch.")
         else:
@@ -140,9 +250,10 @@ class Vsan(object):
                 self.__swobj.config_list(cmdlist)
             except CLIError as c:
                 if "membership being configured is already configured for the interface" in c.message:
-                    return False, None
-                log.error(c)
-                raise CLIError(cmd, c.message)
+                    return
+                else:
+                    log.error(c)
+                    raise CLIError(cmd, c.message)
 
     def __get_facts(self):
         shvsan = self.__swobj.show("show vsan")
@@ -166,6 +277,3 @@ class Vsan(object):
             return None
 
         return dict(shvsan_req_out)
-
-# TODO: Check vsan range during create/delete/addinterface etc..
-# TODO: Interfaces

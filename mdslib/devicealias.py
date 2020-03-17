@@ -8,11 +8,52 @@ log = logging.getLogger(__name__)
 
 
 class DeviceAlias(object):
+    """
+    Device Alias module
+
+    :param switch: switch object on which device-alias operations needs to be executed
+    :type switch: Switch
+
+    :example:
+        >>> da = DeviceAlias(switch = switch_obj)
+
+    """
+
     def __init__(self, sw):
         self.__swobj = sw
 
     @property
     def mode(self):
+        """
+        set device-alias mode or
+        get device-alias mode
+
+        :getter:
+        :return: mode
+        :rtype: str
+        :values: ['basic', 'enhanced']
+        :example:
+            >>>
+            >>> da = DeviceAlias(switch = switch_obj)
+            >>> print(da.mode)
+            enhanced
+            >>>
+
+        :setter:
+        :param mode: mode
+        :type mode: str
+        :values: ['basic', 'enhanced']
+        :raises InvalidMode: if mode is not to either 'basic' or 'enhanced'
+        :raises CLIError: If there is any cli error
+
+        :example:
+            >>>
+            >>> da = DeviceAlias(switch = switch_obj)
+            >>> da.mode = 'basic'
+            >>>
+
+        """
+
         facts_out = self.__get_facts()
         return self.__get_mode(facts_out)
 
@@ -39,6 +80,34 @@ class DeviceAlias(object):
 
     @property
     def distribute(self):
+        """
+        set device-alias distribute configuration or
+        get device-alias distribute configuration
+
+        :getter:
+        :return: distribute
+        :rtype: bool
+        :example:
+            >>>
+            >>> da = DeviceAlias(switch = switch_obj)
+            >>> print(da.distribute)
+            True
+            >>>
+
+        :setter:
+        :param distribute: set to True if distribute needs to be enabled or set to False if distribute needs to be disabled
+        :type distribute: bool
+        :raises CLIError: If there is any cli command error
+        :raises TypeError: If the passed value is not of type bool
+
+        :example:
+            >>>
+            >>> da = DeviceAlias(switch = switch_obj)
+            >>> da.distribute = True
+            >>>
+
+        """
+
         facts_out = self.__get_facts()
         dis = self.__get_distribute(facts_out)
         if dis.lower() == 'enabled':
@@ -65,6 +134,13 @@ class DeviceAlias(object):
 
     @property
     def locked(self):
+        """
+        Check if device-alias has acquired lock or not
+
+        :return: locked: Returns True if device-alias lock is acquired else returns False
+        :rtype: bool
+        """
+
         facts_out = self.__get_facts()
         if self.__locked_user(facts_out) is None:
             return False
@@ -72,6 +148,13 @@ class DeviceAlias(object):
 
     @property
     def database(self):
+        """
+        Returns device-alias database in dict(name:pwwn) format, if there are no device-alias entries then it returns None
+
+        :return: database or None
+        :rtype: dict(name:pwwn)
+        """
+
         retout = {}
         facts_out = self.__get_facts()
         allentries = facts_out.get('device_alias_entries', None)
@@ -89,6 +172,21 @@ class DeviceAlias(object):
             return retout
 
     def create(self, namepwwn):
+        """
+        Create device alias entries
+
+        :param namepwwn: name and pwwwn
+        :type namepwwn: dict (name: pwwn)
+        :return: None
+        :raises CLIError:If there is any cli command error
+
+        :example:
+            >>>
+            >>> da = DeviceAlias(switch = switch_obj)
+            >>> da.create({'device1': '21:00:00:0e:1e:30:34:a5','device2': '21:00:00:0e:1e:30:3c:c5'})
+            >>>
+         """
+
         mode = self.mode
         for name, pwwn in namepwwn.items():
             log.debug("Creating device alias with name:pwwn  " + name + " : " + pwwn)
@@ -112,6 +210,21 @@ class DeviceAlias(object):
             self.__send_commit(mode)
 
     def delete(self, name):
+        """
+        Delete device alias entry
+
+        :param name: name of device alias that needs to be deleted
+        :type name: str
+        :return: None
+        :raises CLIError: If there is any cli command error
+
+        :example:
+            >>>
+            >>> da = DeviceAlias(switch = switch_obj)
+            >>> da.delete('device1')
+
+        """
+
         mode = self.mode
         log.debug("Deleting device alias with args " + name)
         cmd = "device-alias database ; no device-alias name " + name
@@ -128,6 +241,24 @@ class DeviceAlias(object):
             self.__send_commit(mode)
 
     def rename(self, oldname, newname):
+        """
+        Rename device alias entry
+
+        :param oldname: old device alias name
+        :type oldname: str
+        :param newname: new device alias name
+        :type newname: str
+        :return: None
+        :raises CLIError: If there is any cli command error
+
+        :example:
+            >>>
+            >>> da = DeviceAlias(switch = switch_obj)
+            >>> da.rename('device1','device_new')
+            >>>
+
+        """
+
         mode = self.mode
         log.debug("Renaming device alias with args " + oldname + " " + newname)
         cmd = "device-alias database ; device-alias rename " + oldname + " " + newname
@@ -145,25 +276,40 @@ class DeviceAlias(object):
             self.__send_commit(mode)
 
     def clear_lock(self):
+        """
+        Clears lock if lock is acquired
+
+        :param: None
+        :return: None
+
+        :example:
+            >>>
+            >>> da = DeviceAlias(switch = switch_obj)
+            >>> da.clear_lock()
+            >>>
+
+        """
+
         log.debug("Sending the cmd clear device-alias session")
         cmd = "terminal dont-ask ; device-alias database ; clear device-alias session ; no terminal dont-ask "
         self.__swobj.config(cmd)
 
-    def __get_facts(self):
-        log.debug("Getting device alias facts")
-        retoutput = {}
-        out = self.__swobj.show("show device-alias database")
-        if out:
-            num = out['number_of_entries']
-            da = out['TABLE_device_alias_database']['ROW_device_alias_database']
-
-            retoutput['number_of_entries'] = num
-            retoutput['device_alias_entries'] = da
-        shdastatus = self.__swobj.show("show device-alias status")
-
-        return dict(retoutput, **shdastatus)
-
     def clear_database(self):
+        """
+        Clears database entries
+
+        :param: None
+        :return: None
+        :raises CLIError: If there is any cli command error
+
+        :example:
+            >>>
+            >>> da = DeviceAlias(switch = switch_obj)
+            >>> da.clear_database()
+            >>>
+
+        """
+
         mode = self.mode
         log.debug("Sending the cmd clear device-alias database")
         cmd = "terminal dont-ask ; device-alias database ; clear device-alias database ; no terminal dont-ask "
@@ -179,6 +325,20 @@ class DeviceAlias(object):
         dist = self.distribute
         if dist and dist is not None:
             self.__send_commit(mode)
+
+    def __get_facts(self):
+        log.debug("Getting device alias facts")
+        retoutput = {}
+        out = self.__swobj.show("show device-alias database")
+        if out:
+            num = out['number_of_entries']
+            da = out['TABLE_device_alias_database']['ROW_device_alias_database']
+
+            retoutput['number_of_entries'] = num
+            retoutput['device_alias_entries'] = da
+        shdastatus = self.__swobj.show("show device-alias status")
+
+        return dict(retoutput, **shdastatus)
 
     @staticmethod
     def __get_mode(facts_out):

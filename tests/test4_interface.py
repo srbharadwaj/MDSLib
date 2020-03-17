@@ -64,6 +64,7 @@ fobj.out_of_service = False
 print(fobj.status)
 print(fobj.transceiver.sfp_present)
 print(fobj.transceiver.bit_rate)
+print(type(fobj.transceiver.bit_rate))
 print(fobj.transceiver.min_speed)
 print(fobj.transceiver.max_speed)
 print(fobj.transceiver.name)
