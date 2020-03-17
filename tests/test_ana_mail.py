@@ -112,6 +112,7 @@ nvme_profile = {
 # load = sw129.show_analytics_load()
 # pprint.pprint(load)
 
+# get analytics handler
 anahand = sw129.analytics
 # print(anahand.npu_load(1))
 # print(anahand.npu_load(7))
