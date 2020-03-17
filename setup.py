@@ -12,5 +12,5 @@ setup(
     author_email='subharad@cisco.com',
     description='Generic API/SDK library for Cisco MDS Switches',
     long_description=readme,
-    install_requires=['requests']
+    install_requires=['requests', 'paramiko']
 )
