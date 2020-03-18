@@ -2,6 +2,9 @@ import logging
 
 import time
 
+from mdslib.fc import Fc
+from mdslib.portchannel import PortChannel
+from mdslib.switch import Switch
 from tests.enablelog import ScriptLog
 from tests.enablelog import banner
 
@@ -10,7 +13,7 @@ log = sl.log
 
 log.info("Starting Test...")
 
-from mdslib.switch import Switch
+
 
 user = 'admin'
 pw = 'nbv!2345'
@@ -21,15 +24,6 @@ p = 8443
 
 sw104 = Switch(
     ip_address=ip_address,
-    username=user,
-    password=pw,
-    connection_type='https',
-    port=p,
-    timeout=30,
-    verify_ssl=False)
-
-sw218 = Switch(
-    ip_address="10.126.94.218",
     username=user,
     password=pw,
     connection_type='https',
@@ -49,8 +43,6 @@ sw121 = Switch(
     verify_ssl=False)
 
 sw = sw121
-
-from mdslib.fc import Fc
 
 fobj = Fc(sw, name="fc1/1")
 # fobj = Fc(sw, name="port-chanel1")
@@ -76,13 +68,40 @@ print(fobj.transceiver.tx_power)
 print(fobj.transceiver.rx_power)
 
 fobj1 = Fc(sw, name="fc1/4")
+banner(sw.ipaddr)
+print("---- counter obj")
 print(fobj1.counters)
+print("---- counter brief")
 print(fobj1.counters.brief)
+print("---- counter total_stats")
 print(fobj1.counters.total_stats)
+print("---- counter congestion_stats")
 print(fobj1.counters.congestion_stats)
+print("---- counter link_stats")
 print(fobj1.counters.link_stats)
+print("---- counter loop_stats")
 print(fobj1.counters.loop_stats)
+print("---- counter other_stats")
 print(fobj1.counters.other_stats)
+
+pcobj1 = PortChannel(sw, id=21)
+banner("portchannel" + str(pcobj1.id))
+print("---- counter obj")
+print(pcobj1.counters)
+print("---- counter brief")
+print(pcobj1.counters.brief)
+print("---- counter total_stats")
+print(pcobj1.counters.total_stats)
+print("---- counter congestion_stats")
+print(pcobj1.counters.congestion_stats)
+print("---- counter link_stats")
+print(pcobj1.counters.link_stats)
+print("---- counter loop_stats")
+print(pcobj1.counters.loop_stats)
+print("---- counter other_stats")
+print(pcobj1.counters.other_stats)
+
+# fix ver,device-alias,interface counters issues
 
 banner("Get info about interface fc1/57")
 print("Desc: " + fobj.description)

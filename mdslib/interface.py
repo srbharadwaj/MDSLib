@@ -157,7 +157,14 @@ class Interface(object):
         log.debug("Sending the cmd")
         log.debug(cmd)
         out = self.__swobj.config(cmd)
-        return out['body']
+        return out['body']['TABLE_counters']['ROW_counters']
+
+    def _execute_counters_brief_cmd(self):
+        cmd = "show interface " + self._name + " counters brief"
+        log.debug("Sending the cmd")
+        log.debug(cmd)
+        out = self.__swobj.config(cmd)
+        return out['body']["TABLE_counters_brief"]["ROW_counters_brief"]
 
     class Counters(object):
         def __init__(self, intobj):
@@ -165,22 +172,13 @@ class Interface(object):
 
         @property
         def brief(self):
-            out = self.__intobj._execute_counters_detailed_cmd()
-            allkeys = list(out.keys())
-            for k in allkeys:
-                if k.startswith('TABLE'):
-                    out.pop(k)
-                if k.startswith('interface'):
-                    out.pop(k)
+            out = self.__intobj._execute_counters_brief_cmd()
+            out.pop(interfacekeys.INTERFACE)
             return out
 
         @property
         def total_stats(self):
             out = self.__intobj._execute_counters_detailed_cmd()
-            z = out['TABLE_counters']['ROW_counters']
-            for k, v in z.items():
-                if 'total' in k:
-                    print(k, v)
             total = out.get('TABLE_total', None)
             if total is not None:
                 return total.get('ROW_total', None)

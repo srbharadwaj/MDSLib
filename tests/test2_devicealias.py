@@ -36,7 +36,7 @@ sw = Switch(
 from mdslib.devicealias import DeviceAlias
 from mdslib import constants
 
-banner(sw.name)
+banner(sw.ipaddr)
 d = DeviceAlias(sw)
 
 print("Check if invalid mode raises exception")

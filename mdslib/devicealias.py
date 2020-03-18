@@ -1,5 +1,7 @@
 import logging
 
+import time
+
 from .connection_manager.errors import CLIError
 from .constants import ENHANCED, BASIC
 from .utility.allexceptions import InvalidMode
@@ -399,14 +401,20 @@ class DeviceAlias(object):
         cmd = "terminal dont-ask ; device-alias commit ; no terminal dont-ask "
         log.debug(cmd)
         out = self.__swobj.config(cmd)
+        log.debug(out)
         if out is not None:
-            if out['msg'].find("There are no pending changes"):
+            msg = out['msg'].strip("\n").strip()
+            if "There are no pending changes" in msg:
                 log.debug("The commit command was not executed because Device Alias already present")
-            if out['msg'].find("Device-alias enhanced zone member present"):
-                log.debug(out)
-                log.error("Device-alias enhanced zone member present")
+            elif "Device-alias enhanced zone member present" in msg:
+                # log.error(msg)
                 self.__clear_lock_if_enhanced(mode)
-                raise CLIError(cmd, out['msg'])
+                raise CLIError(cmd, msg)
+            elif "Commit in progress. Check the status." in msg:
+                log.debug("Commit in progress...sleep for 5 sec")
+                time.sleep(5)
+            else:
+                raise CLIError(cmd, msg)
 
     def __clear_lock_if_enhanced(self, mode):
         if mode.lower() == ENHANCED:
