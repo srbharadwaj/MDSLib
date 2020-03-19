@@ -15,9 +15,27 @@ log = logging.getLogger(__name__)
 
 
 class Zone(object):
-    def __init__(self, switch, vsan_obj, name):
+    def __init__(self, switch, vsan, name):
+        """
+        Zone module
+
+        :param switch: switch object on which zone operations needs to be executed
+        :type switch: Switch
+        :param vsan: vsan object on which zone operations needs to be executed
+        :type vsan: Vsan
+        :param name: zone name with which zone operations needs to be executed
+        :type name: str
+        :raises VsanNotPresent: if vsan is not present on the switch
+        :example:
+            >>>
+            >>> switch_obj = Switch(ip_address = switch_ip, username = switch_username, password = switch_password)
+            >>> vsan_obj = Vsan(switch = switch_obj, id = 2)
+            >>> vsan_obj.create()
+            >>> zoneObj = Zone(switch_obj,vsan_obj,"zone_fab_a")
+            >>>
+        """
         self.__swobj = switch
-        self._vsanobj = vsan_obj
+        self._vsanobj = vsan
         self._vsan = self._vsanobj.id
         if self._vsan is None:
             raise VsanNotPresent(
@@ -29,6 +47,20 @@ class Zone(object):
 
     @property
     def name(self):
+        """
+        Get zone name
+
+        :return: name: Zone name
+        :rtype: str
+        :raises VsanNotPresent: if vsan is not present on the switch
+        :example:
+            >>>
+            >>> zoneObj = Zone(switch_obj,vsan_obj,"zone_fab_a")
+            >>> zoneObj.create()
+            >>> print(zoneObj.name)
+            zone_fab_a
+            >>>
+        """
         if self._vsanobj.id is None:
             raise VsanNotPresent("Vsan " + str(self._vsanobj._id) + " is not present on the switch.")
         out = self.__show_zone_name()
@@ -38,12 +70,44 @@ class Zone(object):
 
     @property
     def vsan(self):
+        """
+        Get vsan object for the zone
+
+        :return: vsan: vsan of the zone
+        :rtype: Vsan
+        :raises VsanNotPresent: if vsan is not present on the switch
+        :example:
+            >>>
+            >>> vsan_obj = Vsan(switch = switch_obj, id = 2)
+            >>> vsan_obj.create()
+            >>> zoneObj = Zone(switch_obj,vsan_obj,"zone_fab_a")
+            >>> vobj = zoneObj.vsan
+            >>> print(vobj)
+            <mdslib.vsan.Vsan object at 0x10d105550>
+            >>> print(vobj.id)
+            2
+            >>>
+
+        """
         if self.name is not None:
             return self._vsanobj
         return None
 
     @property
     def members(self):
+        """
+        Get members of the zone
+
+        :return: members: members of the zone
+        :rtype: list
+        :raises VsanNotPresent: if vsan is not present on the switch
+        :example:
+            >>>
+            >>> print(zoneObj.members)
+            [{'interface': 'fc1/2'}, {'interface': 'fc1/3'}, {'device-alias': 'somename'}, {'pwwn': '11:22:33:44:55:66:77:88'}]
+            >>>
+
+        """
         if self._vsanobj.id is None:
             raise VsanNotPresent("Vsan " + str(self._vsanobj._id) + " is not present on the switch.")
         out = self.__show_zone_name()
@@ -94,6 +158,18 @@ class Zone(object):
 
     @property
     def locked(self):
+        """
+        Check if zone lock is acquired
+
+        :return: locked: True if zone lock is acquired else return False
+        :rtype: bool
+        :raises VsanNotPresent: if vsan is not present on the switch
+        :example:
+            >>>
+            >>> print(zoneObj.locked)
+            False
+            >>>
+        """
         if self._vsanobj.id is None:
             raise VsanNotPresent("Vsan " + str(self._vsanobj._id) + " is not present on the switch.")
         out = self.__show_zone_status()
@@ -105,6 +181,31 @@ class Zone(object):
 
     @property
     def mode(self):
+        """
+        set zone mode or
+        get zone mode
+
+        :getter:
+        :return: mode: get the current zone mode
+        :rtype: str
+        :raises VsanNotPresent: if vsan is not present on the switch
+        :example:
+            >>>
+            >>> print(zoneObj.mode)
+            enhanced
+            >>>
+
+        :setter:
+        :param mode: set zone mode
+        :type mode: str
+        :values: ['basic', 'enhanced']
+        :raises VsanNotPresent: if vsan is not present on the switch
+        :example:
+            >>>
+            >>> zoneObj.mode = 'enhanced'
+            >>>
+
+        """
         if self._vsanobj.id is None:
             raise VsanNotPresent("Vsan " + str(self._vsanobj._id) + " is not present on the switch.")
         out = self.__show_zone_status()
@@ -127,6 +228,31 @@ class Zone(object):
 
     @property
     def default_zone(self):
+        """
+        set default zone or
+        get default zone
+
+        :getter:
+        :return: default_zone: default zone status of the zone
+        :rtype: str
+        :raises VsanNotPresent: if vsan is not present on the switch
+        :example:
+            >>>
+            >>> print(zoneObj.default_zone)
+            deny
+            >>>
+
+        :setter:
+        :param default_zone: set default zone value
+        :type default_zone: str
+        :values: ['permit', 'deny']
+        :raises VsanNotPresent: if vsan is not present on the switch
+        :example:
+            >>>
+            >>> zoneObj.default_zone = "deny"
+            >>>
+
+        """
         if self._vsanobj.id is None:
             raise VsanNotPresent("Vsan " + str(self._vsanobj._id) + " is not present on the switch.")
         out = self.__show_zone_status()
@@ -149,6 +275,30 @@ class Zone(object):
 
     @property
     def smart_zone(self):
+        """
+        set smart zone or
+        get smart zone
+
+        :getter:
+        :return: smart_zone : get smart zone status
+        :rtype: str
+        :raises VsanNotPresent: if vsan is not present on the switch
+        :example:
+            >>>
+            >>> print(zoneObj.smart_zone)
+            disabled
+            >>>
+
+        :setter:
+        :param smart_zone: enables smart zone if set to True, else disables it
+        :type smart_zone: bool
+        :raises VsanNotPresent: if vsan is not present on the switch
+        :example:
+            >>>
+            >>> zoneObj.smart_zone = True
+            >>>
+
+        """
         if self._vsanobj.id is None:
             raise VsanNotPresent("Vsan " + str(self._vsanobj._id) + " is not present on the switch.")
         out = self.__show_zone_status()
@@ -169,48 +319,150 @@ class Zone(object):
 
     @property
     def fulldb_size(self):
+        """
+        Get full db size of the zone
+
+        :return: fulldb_size: full db size of the zone
+        :rtype: int
+        :raises VsanNotPresent: if vsan is not present on the switch
+        :example:
+            >>>
+            >>> print(zoneObj.fulldb_size)
+            191
+            >>>
+        """
         if self._vsanobj.id is None:
             raise VsanNotPresent("Vsan " + str(self._vsanobj._id) + " is not present on the switch.")
         out = self.__show_zone_status()
-        return out.get(zonekeys.FULLDB_SIZE, None)
+        retout = out.get(zonekeys.FULLDB_SIZE, None)
+        if retout is not None:
+            return int(retout)
+        return None
 
     @property
     def fulldb_zone_count(self):
+        """
+        Get full db zone count
+
+        :return: fulldb_zone_count:  full db zone count
+        :rtype: int
+        :raises VsanNotPresent: if vsan is not present on the switch
+        :example:
+            >>>
+            >>> print(zoneObj.fulldb_zone_count)
+            1
+            >>>
+        """
         if self._vsanobj.id is None:
             raise VsanNotPresent("Vsan " + str(self._vsanobj._id) + " is not present on the switch.")
         out = self.__show_zone_status()
-        return out.get(zonekeys.FULLDB_ZC, None)
+        retout = out.get(zonekeys.FULLDB_ZC, None)
+        if retout is not None:
+            return int(retout)
+        return None
 
     @property
     def fulldb_zoneset_count(self):
+        """
+        Get full db zoneset count
+
+        :return: fulldb_zoneset_count: full db zoneset count
+        :rtype: int
+        :raises VsanNotPresent: if vsan is not present on the switch
+        :example:
+            >>>
+            >>> print(zoneObj.fulldb_zoneset_count)
+            0
+            >>>
+        """
         if self._vsanobj.id is None:
             raise VsanNotPresent("Vsan " + str(self._vsanobj._id) + " is not present on the switch.")
         out = self.__show_zone_status()
-        return out.get(zonekeys.FULLDB_ZSC, None)
+        retout = out.get(zonekeys.FULLDB_ZSC, None)
+        if retout is not None:
+            return int(retout)
+        return None
 
     @property
     def activedb_size(self):
+        """
+        Get active db size of the zone
+
+        :return: activedb_size: active db size of the zone, None if no active db
+        :rtype: int
+        :raises VsanNotPresent: if vsan is not present on the switch
+        :example:
+            >>>
+            >>> print(zoneObj.activedb_size)
+            None
+            >>>
+        """
         if self._vsanobj.id is None:
             raise VsanNotPresent("Vsan " + str(self._vsanobj._id) + " is not present on the switch.")
         out = self.__show_zone_status()
-        return out.get(zonekeys.ACTIVEDB_SIZE, None)
+        retout = out.get(zonekeys.ACTIVEDB_SIZE, None)
+        if retout is not None:
+            return int(retout)
+        return None
 
     @property
     def activedb_zone_count(self):
+        """
+        Get active db zone count
+
+        :return: activedb_zone_count: active db zone count, None if no active db
+        :rtype: int
+        :raises VsanNotPresent: if vsan is not present on the switch
+        :example:
+            >>>
+            >>> print(zoneObj.activedb_zone_count)
+            None
+            >>>
+        """
         if self._vsanobj.id is None:
             raise VsanNotPresent("Vsan " + str(self._vsanobj._id) + " is not present on the switch.")
         out = self.__show_zone_status()
-        return out.get(zonekeys.ACTIVEDB_ZC, None)
+        retout = out.get(zonekeys.ACTIVEDB_ZC, None)
+        if retout is not None:
+            return int(retout)
+        return None
 
     @property
     def activedb_zoneset_count(self):
+        """
+        Get active db zoneset count
+
+        :return: activedb_zoneset_count: Returns active db zoneset count, None if no active db
+        :rtype: int
+        :raises VsanNotPresent: if vsan is not present on the switch
+        :example:
+            >>>
+            >>> print(zoneObj.activedb_zoneset_count)
+            None
+            >>>
+        """
         if self._vsanobj.id is None:
             raise VsanNotPresent("Vsan " + str(self._vsanobj._id) + " is not present on the switch.")
         out = self.__show_zone_status()
-        return out.get(zonekeys.ACTIVEDB_ZSC, None)
+        retout = out.get(zonekeys.ACTIVEDB_ZSC, None)
+        if retout is not None:
+            return int(retout)
+        return None
 
     @property
     def activedb_zoneset_name(self):
+        """
+        Get name of the active zoneset
+
+        :return: activedb_zoneset_name: name of the active zoneset, else None
+        :rtype: str
+        :raises VsanNotPresent: if vsan is not present on the switch
+        :example:
+            >>>
+            >>> print(zoneObj.activedb_zoneset_name)
+            None
+            >>>
+        """
         if self._vsanobj.id is None:
             raise VsanNotPresent("Vsan " + str(self._vsanobj._id) + " is not present on the switch.")
         out = self.__show_zone_status()
@@ -218,33 +470,98 @@ class Zone(object):
 
     @property
     def maxdb_size(self):
+        """
+        Get max db size of the zone
+
+        :return: maxdb_size: max db size of the zone
+        :rtype: int
+        :raises VsanNotPresent: if vsan is not present on the switch
+        :example:
+            >>>
+            >>> print(zoneObj.maxdb_size)
+            4000000
+            >>>
+        """
         if self._vsanobj.id is None:
             raise VsanNotPresent("Vsan " + str(self._vsanobj._id) + " is not present on the switch.")
         out = self.__show_zone_status()
-        return out.get(zonekeys.MAXDB_SIZE, None)
+        retout = out.get(zonekeys.MAXDB_SIZE, None)
+        if retout is not None:
+            return int(retout)
+        return None
 
     @property
     def effectivedb_size(self):
+        """
+        Get effective db size of the zone
+
+        :return: effectivedb_size: effective db size of the zone
+        :rtype: int
+        :raises VsanNotPresent: if vsan is not present on the switch
+        :example:
+            >>>
+            >>> print(zoneObj.effectivedb_size)
+            191
+            >>>
+        """
         if self._vsanobj.id is None:
             raise VsanNotPresent("Vsan " + str(self._vsanobj._id) + " is not present on the switch.")
         out = self.__show_zone_status()
-        return out.get(zonekeys.EFFDB_SIZE, None)
+        retout = out.get(zonekeys.EFFDB_SIZE, None)
+        if retout is not None:
+            return int(retout)
+        return None
 
     @property
     def effectivedb_size_percentage(self):
+        """
+        Get effective db size of the zone in percentage terms
+
+        :return: effectivedb_size_percentage: Get effective db size of the zone in percentage terms
+        :rtype: str
+        :raises VsanNotPresent: if vsan is not present on the switch
+        :example:
+            >>>
+            >>> print(zoneObj.effectivedb_size_percentage)
+            0%
+            >>>
+        """
         if self._vsanobj.id is None:
             raise VsanNotPresent("Vsan " + str(self._vsanobj._id) + " is not present on the switch.")
         out = self.__show_zone_status()
-        return out.get(zonekeys.EFFDB_PER, None)
+        retout = out.get(zonekeys.EFFDB_PER, None)
+        if retout is not None:
+            return str(retout) + "%"
+        return None
 
     @property
     def status(self):
+        """
+        Get the latest status of the zone
+
+        :return: status: the latest status of the zone
+        :rtype: str
+        :raises VsanNotPresent: if vsan is not present on the switch
+        :example:
+            >>>
+            >>> print(zoneObj.status)
+            "Set Smart Zoning Policy complete at 16:03:19 IST Mar 19 2020
+            >>>
+        """
         if self._vsanobj.id is None:
             raise VsanNotPresent("Vsan " + str(self._vsanobj._id) + " is not present on the switch.")
         out = self.__show_zone_status()
         return out.get(zonekeys.STATUS, None)
 
     def clear_lock(self):
+        """
+        Clear zone lock if acquired
+
+        :raises VsanNotPresent: if vsan is not present on the switch
+        :example:
+            >>>
+            >>> zoneObj.clear_lock()
+        """
         if self._vsanobj.id is None:
             raise VsanNotPresent("Vsan " + str(self._vsanobj._id) + " is not present on the switch.")
         cmd = "terminal dont-ask ; clear zone lock vsan  " + str(self._vsan) + " ; no terminal dont-ask"
@@ -256,26 +573,51 @@ class Zone(object):
                     log.debug(msg)
                 elif "No pending info found" in msg:
                     log.debug(msg)
+                elif "Command will clear lock from the entire fabric" in msg:
+                    log.debug(msg)
                 else:
                     log.error(msg)
                     raise CLIError(cmd, msg)
 
     def create(self):
+        """
+        Create zone
+
+        :raises VsanNotPresent: if vsan is not present on the switch
+        :example:
+            >>>
+            >>> zoneObj = Zone(switch_obj,vsan_obj,"zone_fab_a")
+            >>> zoneObj.create()
+            >>>
+         """
+
         if self._vsanobj.id is None:
             raise VsanNotPresent("Vsan " + str(self._vsanobj._id) + " is not present on the switch.")
         cmd = "zone name " + self._name + " vsan " + str(self._vsan)
         self._send_zone_cmd(cmd)
 
     def delete(self):
+        """
+        Delete zone
+
+        :raises VsanNotPresent: if vsan is not present on the switch
+        :example:
+            >>>
+            >>> zoneObj = Zone(switch_obj,vsan_obj,"zone_fab_a")
+            >>> zoneObj.delete()
+            >>>
+         """
         if self._vsanobj.id is None:
             raise VsanNotPresent("Vsan " + str(self._vsanobj._id) + " is not present on the switch.")
         cmd = "no zone name " + self._name + " vsan " + str(self._vsan)
         self._send_zone_cmd(cmd)
 
     def add_members(self, members):
+        # TODO docstring
         self.__add_remove_members(members)
 
     def remove_members(self, members):
+        #TODO docstring
         self.__add_remove_members(members, remove=True)
 
     def __add_remove_members(self, members, remove=False):
@@ -343,7 +685,7 @@ class Zone(object):
 
     def _send_zone_cmd(self, cmd):
         if self.locked:
-            raise CLIError("ERROR!! Zone lock is acquired. Lock details are: " + self._lock_details)
+            raise CLIError(cmd, "ERROR!! Zone lock is acquired. Lock details are: " + self._lock_details)
         try:
             out = self.__swobj.config(cmd)
             log.debug(out)
@@ -393,6 +735,10 @@ class Zone(object):
     def __commit_config_if_locked(self):
         time.sleep(2)
         if self.locked:
+            log.debug("Sending commit cmd as lock is acquired")
+            cmd = "show zone pending-diff vsan " + str(self._vsan)
+            out = self.__swobj.show(cmd, raw_text=True)
+            log.debug(out)
             cmd = "zone commit vsan " + str(self._vsan)
             log.debug("Executing the cmd " + cmd)
             try:

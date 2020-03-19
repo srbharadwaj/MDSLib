@@ -129,6 +129,7 @@ int13 = fc.Fc(sw, "fc1/3")
 pc1 = portchannel.PortChannel(sw, 1)
 pc1.create()
 z1 = zone.Zone(sw, v, "zonetemp")
+z1.clear_lock()
 if z1.name is None:
     print("Zone name is None")
 else:
@@ -149,10 +150,10 @@ print("Zone smartzone is : " + z1.smart_zone)
 # Create zone
 z1.create()
 z1.add_members([int12, int13, "somename", "11:22:33:44:55:66:77:88"])
-print("Zone members are : ")
+print("Zone members after adding as 'list' are : ")
 print(z1.members)
 z1.remove_members([int12, "somename", "11:22:33:44:55:66:77:88"])
-print("Zone members are : ")
+print("Zone members after removing as 'list' are : ")
 print(z1.members)
 memlist = [{'pwwn': '50:08:01:60:08:9f:4d:00'},
            {'pwwn': '50:08:01:60:08:9f:4d:01'},
@@ -164,7 +165,7 @@ memlist = [{'pwwn': '50:08:01:60:08:9f:4d:00'},
            {'symbolic-nodename': 'testsymnode'},
            {'fcalias': 'somefcalias'}]
 z1.add_members(memlist)
-print("Zone members are after adding dict : ")
+print("Zone members are after adding as 'dict' are : ")
 print(z1.members)
 memlist = [{'pwwn': '50:08:01:60:08:9f:4d:00'},
            {'pwwn': '50:08:01:60:08:9f:4d:01'},
@@ -172,10 +173,12 @@ memlist = [{'pwwn': '50:08:01:60:08:9f:4d:00'},
            {'device-alias': 'hello'}, {'ip-address': '1.1.1.1'},
            {'symbolic-nodename': 'symbnodename'}]
 z1.remove_members(memlist)
-print("Zone members are after deleting via dict : ")
+print("Zone members are after deleting as 'dict' are : ")
 print(z1.members)
 
+banner("Running all functions...")
 print(z1.__dict__)
+print([(name, getattr(z1, name)) for name in dir(z1)])
 print(z1.activedb_size)
 if z1.name is None:
     print("ERROR!!! Zone name is None, when it should not be none")

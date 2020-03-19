@@ -47,7 +47,6 @@ class DeviceAlias(object):
         :values: ['basic', 'enhanced']
         :raises InvalidMode: if mode is not to either 'basic' or 'enhanced'
         :raises CLIError: If there is any cli error
-
         :example:
             >>>
             >>> da = DeviceAlias(switch = switch_obj)

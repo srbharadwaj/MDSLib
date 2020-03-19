@@ -13,6 +13,7 @@ log = logging.getLogger(__name__)
 
 class Vsan(object):
     """
+
     Vsan module
 
     :param switch: switch object on which vsan operations need to be executed
@@ -23,7 +24,6 @@ class Vsan(object):
     :example:
         >>> vsan_obj = Vsan(switch = switch_obj, id = 2)
 
-    Optional for preview
     .. warning:: id must be within range 1-4094 (4079,4094 are reserved)
 
             """
@@ -169,7 +169,8 @@ class Vsan(object):
     """
 
     def create(self, name=None):
-        """Creates vsan on the switch
+        """
+        Creates vsan on the switch
 
         :param name: name of vsan (optional parameter, defaults to 'VSAN<vsan-id>' if passed as None)
         :type name: str or None

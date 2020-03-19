@@ -44,7 +44,9 @@ def log_exception(logger):
 
 class Switch(SwitchUtils):
     """
+
     Switch module
+
     :param ip_address: mgmt ip address of switch
     :type ip_address: str
     :param username: username
@@ -61,7 +63,7 @@ class Switch(SwitchUtils):
     :type verify_ssl: bool
 
     :example:
-        >>> switch_obj = Switch(ip_address = switch_ip, username = switch_username, password = switch_password )
+        >>> switch_obj = Switch(ip_address = switch_ip, username = switch_username, password = switch_password)
 
     """
 

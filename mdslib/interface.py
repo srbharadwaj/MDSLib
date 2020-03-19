@@ -44,10 +44,27 @@ class Interface(object):
     @property
     def description(self):
         """
-        Get the description of the interface
-        :rtype: object
-        :return: 
+        set description of the interface or
+        get description of the interface
+
+        :getter:
+        :return: description of the interface
+        :rtype: str
+        :example:
+            >>>
+            >>> print(int_obj.description)
+            This is an ISL connected to sw2
+            >>>
+
+        :setter:
+        :param description: set description of the interface
+        :type description: str
+        :example:
+            >>>
+            >>> int_obj.description = "This is an ISL connected to sw2"
+            >>>
         """
+
         out = self.__swobj.show("show interface  " + self._name + " description")
         desc = out['TABLE_interface']['ROW_interface']['description']
         # IF the string is a big one then the return element is of type list
@@ -59,10 +76,6 @@ class Interface(object):
 
     @description.setter
     def description(self, value):
-        """
-        Set the description of the interface
-        :param str value: Description string
-        """
         cmd = "interface " + self._name + " ; switchport description  " + value
         log.debug("Sending the cmd: " + cmd)
         out = self.__swobj.config(cmd)
@@ -70,6 +83,27 @@ class Interface(object):
 
     @property
     def mode(self):
+        """
+        set interface mode or
+        get interface mode
+
+        :getter:
+        :return: interface mode
+        :rtype: str
+        :example:
+            >>>
+            >>> print(int_obj.mode)
+            F
+            >>>
+
+        :setter:
+        :param mode: set mode of the interface
+        :type mode: str
+        :example:
+            >>>
+            >>> int_obj.mode = "F"
+            >>>
+        """
         out = self.__parse_show_int_brief()
         if out is not None:
             return out[interfacekeys.INT_OPER_MODE]
@@ -84,6 +118,27 @@ class Interface(object):
 
     @property
     def speed(self):
+        """
+        set speed of the interface or
+        get speed of the interface
+
+        :getter:
+        :return: speed of the interface
+        :rtype: int
+        :example:
+            >>>
+            >>> print(int_obj.speed)
+            32000
+            >>>
+
+        :setter:
+        :param mode: set speed of the interface
+        :type mode: int
+        :example:
+            >>>
+            >>> int_obj.speed = 32000
+            >>>
+        """
         out = self.__parse_show_int_brief()
         if out is not None:
             return out[interfacekeys.INT_OPER_SPEED]
@@ -97,6 +152,27 @@ class Interface(object):
 
     @property
     def trunk(self):
+        """
+        set trunk mode on the interface or
+        get trunk mode on the interface
+
+        :getter:
+        :return: trunk mode of the interface
+        :rtype: str
+        :example:
+            >>>
+            >>> print(int_obj.trunk)
+            on
+            >>>
+
+        :setter:
+        :param mode: set trunk mode on the interface
+        :type mode: str
+        :example:
+            >>>
+            >>> int_obj.trunk = "on"
+            >>>
+        """
         out = self.__parse_show_int_brief()
         if out is not None:
             return out[interfacekeys.INT_ADMIN_TRUNK_MODE]
@@ -110,6 +186,28 @@ class Interface(object):
 
     @property
     def status(self):
+        """
+        set status of the interface or
+        get status of the interface
+
+        :getter:
+        :return: status of the interface
+        :rtype: str
+        :example:
+            >>>
+            >>> print(int_obj.status)
+            trunking
+            >>>
+
+        :setter:
+        :param mode: set status of the interface
+        :type mode: str
+        :values: "shutdown", "no shutdown"
+        :example:
+            >>>
+            >>> int_obj.status = "no shutdown"
+            >>>
+        """
         out = self.__parse_show_int_brief()
         if out is not None:
             return out[interfacekeys.INT_STATUS]
@@ -123,6 +221,15 @@ class Interface(object):
 
     @property
     def counters(self):
+        """
+        Returns handler for counters module, using which we could get various counter details of the interface
+
+        :return: counters handler
+        :rtype: Counters
+        :example:
+            >>> counters = int_obj.counters
+            >>>
+        """
         return self.Counters(self)
 
     def __parse_show_int_brief(self):
@@ -172,12 +279,24 @@ class Interface(object):
 
         @property
         def brief(self):
+            """
+            Get brief counters details of the interface
+
+            :return: brief: Returns brief counters details of the interface
+            :rtype: dict (name:value)
+            """
             out = self.__intobj._execute_counters_brief_cmd()
             out.pop(interfacekeys.INTERFACE)
             return out
 
         @property
         def total_stats(self):
+            """
+            Get total stats from the detailed counters of the interface
+
+            :return: total_stats: total stats from the detailed counters of the interface
+            :rtype: dict (name:value)
+            """
             out = self.__intobj._execute_counters_detailed_cmd()
             total = out.get('TABLE_total', None)
             if total is not None:
@@ -186,6 +305,12 @@ class Interface(object):
 
         @property
         def link_stats(self):
+            """
+            Get link stats from the detailed counters of the interface
+
+            :return: link_stats: link stats from the detailed counters of the interface
+            :rtype: dict (name:value)
+            """
             out = self.__intobj._execute_counters_detailed_cmd()
             total = out.get('TABLE_link', None)
             if total is not None:
@@ -194,6 +319,12 @@ class Interface(object):
 
         @property
         def loop_stats(self):
+            """
+            Get loop stats from the detailed counters of the interface
+
+            :return: loop_stats: loop stats from the detailed counters of the interface
+            :rtype: dict (name:value)
+            """
             out = self.__intobj._execute_counters_detailed_cmd()
             total = out.get('TABLE_loop', None)
             if total is not None:
@@ -202,6 +333,12 @@ class Interface(object):
 
         @property
         def congestion_stats(self):
+            """
+            Get congestion stats from the detailed counters of the interface
+
+            :return: congestion_stats: congestion stats from the detailed counters of the interface
+            :rtype: dict (name:value)
+            """
             out = self.__intobj._execute_counters_detailed_cmd()
             total = out.get('TABLE_congestion', None)
             if total is not None:
@@ -210,6 +347,12 @@ class Interface(object):
 
         @property
         def other_stats(self):
+            """
+            Get other stats from the detailed counters of the interface
+
+            :return: other_stats: other stats from the detailed counters of the interface
+            :rtype: dict (name:value)
+            """
             out = self.__intobj._execute_counters_detailed_cmd()
             total = out.get('TABLE_others', None)
             if total is not None:
