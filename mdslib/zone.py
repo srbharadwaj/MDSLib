@@ -124,7 +124,9 @@ class Zone(object):
 
     def __format_members(self, retout):
 
+        #
         # This function converts the input retout from this
+        #
         # [{'type': 'pwwn', 'wwn': '50:08:01:60:08:9f:4d:00', 'dev_alias': 'JDSU-180-Lrow-1'},
         #  {'type': 'pwwn', 'wwn': '50:08:01:60:08:9f:4d:01', 'dev_alias': 'JDSU-180-Lrow-2'},
         #  {'type': 'interface', 'intf_fc': 'fc1/4', 'wwn': '20:00:00:de:fb:b1:96:10'},
@@ -134,7 +136,9 @@ class Zone(object):
         #  {'type': 'interface', 'intf_port_ch': 1, 'wwn': '20:00:00:de:fb:b1:96:10'},
         #  {'type': 'symbolic-nodename', 'symnodename': 'testsymnode'},
         #  {'type': 'fcalias', 'fcalias_name': 'somefcalias', 'fcalias_vsan_id': 1}]
+        #
         # to this one
+        #
         # [{'pwwn': '50:08:01:60:08:9f:4d:00'},
         #  {'pwwn': '50:08:01:60:08:9f:4d:01'},
         #  {'interface': 'fc1/4'},
@@ -613,14 +617,79 @@ class Zone(object):
         self._send_zone_cmd(cmd)
 
     def add_members(self, members):
-        # TODO docstring
+        """
+        Add members to the zone
+
+        :param members: add members to the zone, there are 2 ways you can add members to the zone
+            a list of members - Fc/Port-channel interface object, device-alias, pwwn
+            or
+            a dict of members - here key will be valid zone member type like "pwwn","device-alias","interface" etc..
+        :type members: list or dict
+        :raises VsanNotPresent: if vsan is not present on the switch
+        :raises InvalidZoneMemberType: if zone member type is invalid
+        :example:
+            >>>
+            >>> zoneObj = Zone(switch_obj,vsan_obj,"zone_fab_a")
+            >>> zoneObj.create()
+            >>> int12 = Fc(sw, "fc1/2")
+            >>> int13 = Fc(sw, "fc1/3")
+            # add members as a list
+            >>> zoneObj.add_members([int12, int13, "somename", "11:22:33:44:55:66:77:88"])
+            >>>
+            # add members as a dict
+            >>> memlist = [{'pwwn': '50:08:01:60:08:9f:4d:00'},
+            ... {'pwwn': '50:08:01:60:08:9f:4d:01'},
+            ... {'interface': int13.name},
+            ... {'device-alias': 'hello'}, {'ip-address': '1.1.1.1'},
+            ... {'symbolic-nodename': 'symbnodename'},
+            ... {'fwwn': '11:12:13:14:15:16:17:18'}, {'fcid': '0x123456'},
+            ... {'interface': int12.name},
+            ... {'symbolic-nodename': 'testsymnode'},
+            ... {'fcalias': 'somefcalias'}]
+            >>> zoneObj.add_members(memlist)
+            >>>
+         """
         self.__add_remove_members(members)
 
     def remove_members(self, members):
-        #TODO docstring
+        """
+        Remove members from the zone
+
+        :param members: Remove members from the zone, there are 2 ways you can remove members from the zone
+            a list of members - Fc/Port-channel interface object, device-alias, pwwn
+            or
+            a dict of members - here key will be valid zone member type like "pwwn","device-alias","interface" etc..
+        :type members: list or dict
+        :raises VsanNotPresent: if vsan is not present on the switch
+        :raises InvalidZoneMemberType: if zone member type is invalid
+        :example:
+            >>>
+            >>> zoneObj = Zone(switch_obj,vsan_obj,"zone_fab_a")
+            >>> zoneObj.create()
+            >>> int12 = Fc(sw, "fc1/2")
+            >>> int13 = Fc(sw, "fc1/3")
+            # add members as a list
+            >>> zoneObj.remove_members([int12, int13, "somename", "11:22:33:44:55:66:77:88"])
+            >>>
+            # add members as a dict
+            >>> memlist = [{'pwwn': '50:08:01:60:08:9f:4d:00'},
+            ... {'pwwn': '50:08:01:60:08:9f:4d:01'},
+            ... {'interface': int13.name},
+            ... {'device-alias': 'hello'}, {'ip-address': '1.1.1.1'},
+            ... {'symbolic-nodename': 'symbnodename'},
+            ... {'fwwn': '11:12:13:14:15:16:17:18'}, {'fcid': '0x123456'},
+            ... {'interface': int12.name},
+            ... {'symbolic-nodename': 'testsymnode'},
+            ... {'fcalias': 'somefcalias'}]
+            >>> zoneObj.remove_members(memlist)
+            >>>
+         """
+        # TODO docstring
         self.__add_remove_members(members, remove=True)
 
     def __add_remove_members(self, members, remove=False):
+        if self._vsanobj.id is None:
+            raise VsanNotPresent("Vsan " + str(self._vsanobj._id) + " is not present on the switch.")
         cmdlist = []
         cmdlist.append("zone name " + self._name + " vsan " + str(self._vsan))
         for eachmem in members:

@@ -45,7 +45,7 @@ sw121 = Switch(
 sw = sw121
 
 fobj = Fc(sw, name="fc1/1")
-# fobj = Fc(sw, name="port-chanel1")
+# fobj = Fc(_sw, name="port-chanel1")
 # fobj.description = "Desc test"
 fobj.description = "123 Description of maximum 254 charactersDescription of maximum 254 charactersDescription of maximum 254 charactersDescription of maximum 254 charactersDescription of maximum 254 charactersDescription of maximum 254 charactersDescription of maximum 254 c"
 print(fobj.description)
@@ -123,13 +123,13 @@ print("Speed: " + fobj.speed)
 print("Status: " + fobj.status)
 print("Trunk: " + fobj.trunk)
 # from mdslib.interface import Interface
-# i = Interface(sw)
+# i = Interface(_sw)
 
 
 # banner(" PortChannel section")
 # banner("Checking PC 22")
 # # Lets play with port-channel
-# pc22 = PortChannel(switch=sw, id=22)
+# pc22 = PortChannel(switch=_sw, id=22)
 # pc22.create()
 # pc22.description = "This is a sample pc description"
 # banner("Get info about interface pc22_218")
@@ -146,7 +146,7 @@ print("Trunk: " + fobj.trunk)
 # #pprint.pprint(pc22_218.counters)
 # pprint.pprint(pc22.members)
 #
-# fc11 = Fc(sw,name="fc127/53")
+# fc11 = Fc(_sw,name="fc127/53")
 # pc22.add_members([fc11])
 # fc11.status = constants.NO_SHUTDOWN
 # pprint.pprint(pc22.members)
@@ -155,7 +155,7 @@ print("Trunk: " + fobj.trunk)
 # fc11.status = constants.NO_SHUTDOWN
 #
 # banner("Checking PC 21")
-# pc21 = PortChannel(switch=sw, id=21)
+# pc21 = PortChannel(switch=_sw, id=21)
 # print("Desc: " + pc21.description)
 # print("Mode: " + pc21.mode)
 # print("Name: " + pc21.name)

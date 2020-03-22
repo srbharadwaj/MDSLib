@@ -37,8 +37,8 @@ sw = sw121
 
 from mdslib import zone, vsan, fc, portchannel
 
-# v1 = vsan.Vsan(sw, 1)
-# z1 = zone.Zone(sw, v1, "zonejdsu")
+# v1 = vsan.Vsan(_sw, 1)
+# z1 = zone.Zone(_sw, v1, "zonejdsu")
 # print("Zone name is : " + z1.name)
 # print("Zone vsan obj is : " + str(z1.vsan))
 # print("Zone vsan id is : " + str(z1.vsan.id))

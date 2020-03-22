@@ -42,7 +42,7 @@ print(sw.interfaces)
 # Output of the above prints are as follows
 # #######################################
 # ip    : 10.126.94.121
-# name  : sw-L16-Yushan-121.cisco.com
+# name  : _sw-L16-Yushan-121.cisco.com
 # ver   : 8.4(2u)
 # model : MDS 9396T 96X32G FC (2 RU) Chassis
 # #######################################
@@ -60,7 +60,7 @@ print("name : " + sw.name)
 # #######################################
 
 # Let us change the switchname back to the old one
-sw.name = "sw-L16-Yushan-121"
+sw.name = "_sw-L16-Yushan-121"
 
 # Print the switch name
 print("name : " + sw.name)
@@ -68,7 +68,7 @@ print("name : " + sw.name)
 # #######################################
 # Output of the above print is as follows
 # #######################################
-# name : sw-L16-Yushan-121.cisco.com
+# name : _sw-L16-Yushan-121.cisco.com
 # #######################################
 
 

@@ -10,24 +10,10 @@ class InvalidProfile(CommonException):
     pass
 
 
+# SAMPLE PROFILE
 # protocol: scsi
 # metrics: [port, total_read_io_time, total_write_io_time] - - default[] all
 # view: scsi_initiator_it_flow
-#
-# sw.create_analytics_query(
-#     name=
-#     profile =
-# clear = False
-# differential = False
-# interval = 30)
-#
-# sw.delete_analytics_query(name=)
-#
-# sw.show_analytics_query(name=)
-#
-# sw.show_analytics(profile=)
-# sw.clear_analytics(profile=)
-# sw.purge_analytics(profile=)
 
 # Be extra careful while changing the patterns or the keys of the patten
 METRICS = 'metrics'
@@ -48,15 +34,25 @@ TIME_PAT_COMP = re.compile(TIME_PAT)
 
 
 class Analytics():
+    """
+    Analytics Module
+
+    :example:
+        >>> switch_obj = Switch(ip_address = switch_ip, username = switch_username, password = switch_password )
+        >>> ana_hand = switch_obj.analytics
+        >>> print(ana_hand)
+        <mdslib.analytics.Analytics object at 0x10ad710d0>
+
+    """
+
     def __init__(self, sw):
-        self.sw = sw
+        self._sw = sw
 
     def _show_analytics_system_load(self):
 
         """
         Sample output of this proc is as follows
-        """
-        """
+
         sw129-Luke(config-if)# show analytics system-load 
          n/a - not applicable
          ----------------------------------- Analytics System Load Info -------------------------------
@@ -110,7 +106,7 @@ class Analytics():
         """
 
         all = []
-        out, error = self.sw._ssh_handle.config("show analytics system-load")
+        out, error = self._sw._ssh_handle.config("show analytics system-load")
         for eachout in out:
             eachout = eachout.strip()
             if any(char.isdigit() for char in eachout):
@@ -168,6 +164,35 @@ class Analytics():
         return selq
 
     def create_query(self, name, profile, clear=False, differential=False, interval=30):
+        """
+        Create analytics query
+
+        :param name: name of the query to create
+        :type name: str
+        :param profile: profile for the query
+        :type profile: dict('protocol': value , 'metrics': [values], 'view': value)
+        :param clear: set to True to add clear option to the query else set to False
+        :type clear: bool (Default = False)
+        :param differential: set to True to add differential option to the query else set to False
+        :type differential: bool (Default = False)
+        :param interval: query interval that needs to be set
+        :type interval: interval (Default = 30)
+
+        :return: switch response to the create query cli and the error if any
+        :rtype: tuple: (output, error)
+
+        :example:
+            >>>
+            >>> port_scsi_profile = {
+            ... 'protocol': 'scsi',
+            ... 'metrics': [],  # default, which is all
+            ... 'view': 'port'
+            ... }
+            >>> ana_hand = switch_obj.analytics
+            >>> ana_hand.create_query("port_query",port_scsi_profile)
+            >>>
+
+        """
         if self._validate_profile(profile):
             selq = self._get_select_query_string(profile)
             cmd = 'analytics query "' + selq + '" name ' + name + " type periodic interval " + str(interval)
@@ -179,16 +204,60 @@ class Analytics():
             elif differential:
                 cmd = cmd + " differential"
             log.info("Cmd to be sent is " + cmd)
-            return self.sw._ssh_handle.config(cmd)
+            return self._sw._ssh_handle.config(cmd)
 
     def delete_query(self, name):
+        """
+
+        :param name: name of the query to delete
+        :type name: str
+        :return: switch response to the delete query cli and the error if any
+        :rtype: tuple: (output, error)
+        :example:
+            >>>
+            >>> ana_hand.delete_query(port_scsi_profile)
+        """
         cmd = "no analytics name " + name
         log.info("Cmd to be sent is " + cmd)
         return self._ssh_handle.config(cmd)
 
     def show_query(self, name=None, profile=None, clear=False, differential=False):
+        """
+        Show analytics query result
+        Get result for installed query or do a pull query
+
+        :param name: name of the query installed for which result needs to be pulled out
+        :type name: str
+        :param profile: profile to get the pull query result
+        :type profile: dict('protocol': value , 'metrics': [values], 'view': value)
+        :param clear: set to True to add clear option to the pull query else set to False
+        :type clear: bool (Default = False)
+        :param differential: set to True to add differential option to the pull query else set to False
+        :type differential: bool (Default = False)
+
+        :return: switch response to the show query cli and the error if any
+        :rtype: tuple: (output, error)
+
+        :example:
+            >>>
+            >>> port_scsi_profile = {
+            ... 'protocol': 'scsi',
+            ... 'metrics': [],  # default, which is all
+            ... 'view': 'port'
+            ... }
+            >>> ana_hand = switch_obj.analytics
+            >>> ana_hand.create_query("port_query",port_scsi_profile)
+            >>> out_install = ana_hand.show_query("port_query")
+            >>> print(out_install)
+            {'1': {'port': 'fc1/48', 'scsi_target_count': '2', 'scsi_initiator_count': '0', 'io_app_count': '1',
+             'logical_port_count': '2', 'scsi_target_app_count': '2',...}
+            >>> out_pullq = ana_hand.show_query(profile=port_scsi_profile)
+            >>> print(out_pullq)
+            {'1': {'port': 'fc1/48', 'scsi_target_count': '2', 'scsi_initiator_count': '0', 'io_app_count': '1',
+             'logical_port_count': '2', 'scsi_target_app_count': '2',...}
+        """
         if (name is not None) and (profile is not None):
-            raise TypeError()
+            raise TypeError("Need to pass either query name(for installed query) or profile(for pull query) not both")
         if name is None:
             # Profile is set so its a pull query
             if self._validate_profile(profile):
@@ -201,29 +270,93 @@ class Analytics():
                 elif differential:
                     cmd = cmd + " differential "
                 log.info("Cmd to be sent is " + cmd)
-                return self.sw._ssh_handle.show(cmd)
+                return self._sw._ssh_handle.show(cmd)
         else:
             # Name is set, so its an install query
             cmd = "show analytics query name " + name + " result"
             log.info("Cmd to be sent is " + cmd)
-            return self.sw._ssh_handle.show(cmd)
+            return self._sw._ssh_handle.show(cmd)
 
     def clear(self, profile):
+        """
+        clear analytics query
+
+        :param profile: profile to get the pull query result
+        :type profile: dict('protocol': value , 'metrics': [values], 'view': value)
+
+        :return: switch response to the show query cli and the error if any
+        :rtype: tuple: (output, error)
+
+        :example:
+            >>>
+            >>> scsi_profile_few = {
+            ... 'protocol': 'scsi',
+            ... 'metrics': ['port', 'total_read_io_count', 'total_write_io_count'],
+            ... 'view': 'port'
+            ... }
+            >>> ana_hand = switch_obj.analytics
+            >>> ana_hand.clear(port_scsi_profile)
+            >>>
+        """
         if self._validate_profile(profile):
             selq = self._get_select_query_string(profile)
             cmd = 'clear analytics query "' + selq + '"'
             log.info("Cmd to be sent is " + cmd)
-            return self.sw._ssh_handle.config(cmd)
+            return self._sw._ssh_handle.config(cmd)
 
     def purge(self, profile):
+        """
+        purge analytics query
+
+        :param profile: profile to get the pull query result
+        :type profile: dict('protocol': value , 'metrics': [values], 'view': value)
+
+        :return: switch response to the show query cli and the error if any
+        :rtype: tuple: (output, error)
+
+        :example:
+            >>>
+            >>> scsi_profile_few = {
+            ... 'protocol': 'scsi',
+            ... 'metrics': ['port', 'total_read_io_count', 'total_write_io_count'],
+            ... 'view': 'port'
+            ... }
+            >>> ana_hand = switch_obj.analytics
+            >>> ana_hand.purge(port_scsi_profile)
+            >>>
+        """
         if self._validate_profile(profile):
             selq = self._get_select_query_string(profile)
             purgecmd = 'purge analytics query "' + selq + '"'
             cmd = "terminal dont-ask ; " + purgecmd + " ; no terminal dont-ask"
             log.info("Cmd to be sent is " + cmd)
-            return self.sw._ssh_handle.config(cmd)
+            return self._sw._ssh_handle.config(cmd)
 
     def npu_load(self, module, protocol=None):
+        """
+        Get NPU load for a module
+
+        :param module: module number for which we need to get NPU load
+        :type module: int
+        :param protocol: protocol for which NPU load needs to be fetched,
+                if 'scsi' gets scsi NPU load, if 'nvme', gets nvme NPU load, if None, gets total NPU load
+        :type protocol: str (Default = None)
+        :values: 'scsi,'nvme',None
+
+        :return: NPU load
+        :rtype: str
+
+        :example:
+            >>>
+            >>> ana_hand = switch_obj.analytics
+            >>> ana_hand.npu_load(2)
+            30%
+            >>> ana_hand.npu_load(2,'scsi')
+            10%
+            >>> ana_hand.npu_load(2,'nvme')
+            20%
+            >>>
+        """
         out = self._show_analytics_system_load()
         if out is None:
             return None
@@ -231,13 +364,33 @@ class Analytics():
             mod_str = eachrow.get('module', None)
             if mod_str == str(module):
                 if protocol == 'scsi':
-                    return eachrow.get('scsi_npu_load')
+                    return str(eachrow.get('scsi_npu_load')) + "%"
                 if protocol == 'nvme':
-                    return eachrow.get('nvme_npu_load')
+                    return str(eachrow.get('nvme_npu_load')) + "%"
                 if protocol is None:
-                    return eachrow.get('total_npu_load')
+                    return str(eachrow.get('total_npu_load')) + "%"
 
     def itls(self, module=None):
+        """
+        Get total switch scsi ITLs or total per module scsi ITLs
+
+        :param module: module number for which we need to get scsi ITLs, if set to None, get total ITLs of the switch
+        :type module: int (Default = None)
+
+        :return: total ITLs
+        :rtype: int
+
+        :example:
+
+            >>> ana_hand = switch_obj.analytics
+            >>> ana_hand.itls()
+            1248
+            >>> ana_hand.itls(2)
+            1000
+            >>> ana_hand.itls(4)
+            248
+            >>>
+        """
         out = self._show_analytics_system_load()
         if out is None:
             return None
@@ -251,6 +404,26 @@ class Analytics():
                     return eachrow.get('scsi_itls')
 
     def itns(self, module=None):
+        """
+        Get total switch nvme ITNs or total per module nvme ITNs
+
+        :param module: module number for which we need to get nvme ITNs, if None gets switch nvme ITNs
+        :type module: int (Default = None)
+
+        :return: total ITNs
+        :rtype: int
+
+        :example:
+
+            >>> ana_hand = switch_obj.analytics
+            >>> ana_hand.itns()
+            200
+            >>> ana_hand.itns(2)
+            150
+            >>> ana_hand.itns(4)
+            50
+            >>>
+        """
         out = self._show_analytics_system_load()
         if out is None:
             return None
@@ -264,6 +437,26 @@ class Analytics():
                     return eachrow.get('nvme_itns')
 
     def itls_itns(self, module=None):
+        """
+        Get total switch scsi ITLs and nvme ITNs or total per module scsi ITLs and nvme ITNs
+
+        :param module: module number for which we need to get scsi ITLs and nvme ITNs, if None gets switch ITLs and ITNs
+        :type module: int (Default = None)
+
+        :return: total scsi ITLs and nvme ITNs
+        :rtype: int
+
+        :example:
+
+            >>> ana_hand = switch_obj.analytics
+            >>> ana_hand.itls_itns()
+            1448
+            >>> ana_hand.itls_itns(2)
+            1150
+            >>> ana_hand.itls_itns(4)
+            298
+            >>>
+        """
         out = self._show_analytics_system_load()
         if out is None:
             return None
@@ -277,6 +470,30 @@ class Analytics():
                     return eachrow.get('both_itls_itns')
 
     def initiators(self, module=None, protocol=None):
+        """
+        Get total initiators on the switch or per module
+
+        :param module: module number for which we need to get total initiators
+        :type module: int (Default = None)
+        :param protocol: protocol for which we need to get total initiators
+                if 'scsi' gets scsi initiators, if 'nvme', gets nvme initiators, if None, gets total initiators
+        :type protocol: str (Default = None)
+        :values: 'scsi,'nvme',None
+
+        :return: total initiators
+        :rtype: str
+
+        :example:
+            >>>
+            >>> ana_hand = switch_obj.analytics
+            >>> ana_hand.initiators()
+            30
+            >>> ana_hand.initiators(2,'scsi')
+            10
+            >>> ana_hand.initiators(2,'nvme')
+            20
+            >>>
+        """
         out = self._show_analytics_system_load()
         if out is None:
             return None
@@ -300,6 +517,30 @@ class Analytics():
                         return eachrow.get('total_initiators')
 
     def targets(self, module=None, protocol=None):
+        """
+        Get total targets on the switch or per module
+
+        :param module: module number for which we need to get total targets
+        :type module: int (Default = None)
+        :param protocol: protocol for which we need to get total targets
+                if 'scsi' gets scsi targets, if 'nvme', gets nvme targets, if None, gets total targets
+        :type protocol: str (Default = None)
+        :values: 'scsi,'nvme',None
+
+        :return: total targets
+        :rtype: str
+
+        :example:
+            >>>
+            >>> ana_hand = switch_obj.analytics
+            >>> ana_hand.targets()
+            30
+            >>> ana_hand.targets(2,'scsi')
+            10
+            >>> ana_hand.targets(2,'nvme')
+            20
+            >>>
+        """
         out = self._show_analytics_system_load()
         if out is None:
             return None

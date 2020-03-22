@@ -69,7 +69,7 @@ banner("end")
 
 banner("switch modules ")
 mods = sw.modules
-print("sw.modules returns.. ")
+print("_sw.modules returns.. ")
 print(mods)
 for eachmod in mods:
     print("mod status is    : " + eachmod.status)
@@ -80,26 +80,26 @@ for eachmod in mods:
     print("")
 banner("end")
 
-# modules = sw.modules
-# print(vars(sw))
+# modules = _sw.modules
+# print(vars(_sw))
 # for eachmod in modules:
 #     print(eachmod.module_number, eachmod.model,eachmod.module_type,eachmod.ports,eachmod.status)
-# #print(sw.modules)
+# #print(_sw.modules)
 #
 # from mdslib.vsan import Vsan
-# v = Vsan(sw,1)
+# v = Vsan(_sw,1)
 # v.suspend= False
 # print(v.state)
 #
 # #
-# # out = sw.config("sh interface fc3/1 transceiver details")
+# # out = _sw.config("sh interface fc3/1 transceiver details")
 # # print(out)
 # # #
 # # # banner("Device Alias section ")
 #
 # from mdslib.fc import Fc
 #
-# i = Fc(sw,"fc127/1")
+# i = Fc(_sw,"fc127/1")
 # print(i.name)
 # print(i.status)
 # print(i.out_of_service)
@@ -113,9 +113,9 @@ banner("end")
 
 #
 # from mdslib.interface import Interface
-# i = Interface(sw,"1/1")
+# i = Interface(_sw,"1/1")
 # print(i)
-# dah = DeviceAlias(sw)
+# dah = DeviceAlias(_sw)
 # # facts = dah.__get_facts()
 
 # # facts.pop('device_alias_entries')
@@ -147,7 +147,7 @@ banner("end")
 # pprint.pprint(facts)
 # #
 # # banner("Vsan section ")
-# # v123 = Vsan(switch=sw,name=123)
+# # v123 = Vsan(switch=_sw,name=123)
 # # print(v123.__get_facts())
 # # err,errstr = v123.create()
 # # if err:
@@ -160,7 +160,7 @@ banner("end")
 
 '''
 banner("Zone section ")
-zobj = Zone(sw,vsan=v123.name)
+zobj = Zone(_sw,vsan=v123.name)
 print(zobj.__get_facts())
 zobj.mode = 'enhanced'
 print(zobj.__get_facts())
@@ -179,7 +179,7 @@ print(zobj.__get_facts())
 
 
 banner("Zoneset section ")
-zonesetobj = ZoneSet(sw,vsan=v123.name)
+zonesetobj = ZoneSet(_sw,vsan=v123.name)
 print(zonesetobj.zonesets)
 print(zonesetobj.zoneset_names)
 print(zonesetobj.active_zoneset)
@@ -203,7 +203,7 @@ FC Topology for VSAN 1 :
            fc127/46 0xe7(231)          fc18/13  10.126.94.175(sw175-Luke-18slot)
             fc6/1 0xe7(231)          fc18/45  10.126.94.175(sw175-Luke-18slot)
             fc6/3 0xe7(231)          fc13/33  10.126.94.175(sw175-Luke-18slot)
-           fc6/13 0x80(128)           fc127/57  10.126.94.121(sw-L16-Yushan-121)
+           fc6/13 0x80(128)           fc127/57  10.126.94.121(_sw-L16-Yushan-121)
            fc6/31 0xe7(231)           fc13/3  10.126.94.175(sw175-Luke-18slot)
            fc6/41 0xe7(231)          fc17/41  10.126.94.175(sw175-Luke-18slot)
            fc6/42 0xe7(231)          fc17/42  10.126.94.175(sw175-Luke-18slot)
@@ -217,7 +217,7 @@ FC Topology for VSAN 10 :
            fc127/46 0x9f(159)          fc18/13  10.126.94.175(sw175-Luke-18slot)
             fc6/1 0x9f(159)          fc18/45  10.126.94.175(sw175-Luke-18slot)
             fc6/3 0x9f(159)          fc13/33  10.126.94.175(sw175-Luke-18slot)
-           fc6/13  0x60(96)           fc127/57  10.126.94.121(sw-L16-Yushan-121)
+           fc6/13  0x60(96)           fc127/57  10.126.94.121(_sw-L16-Yushan-121)
            fc6/31 0x9f(159)           fc13/3  10.126.94.175(sw175-Luke-18slot)
            fc6/41 0x9f(159)          fc17/41  10.126.94.175(sw175-Luke-18slot)
            fc6/42 0x9f(159)          fc17/42  10.126.94.175(sw175-Luke-18slot)
@@ -231,7 +231,7 @@ FC Topology for VSAN 11 :
            fc127/46  0x47(71)          fc18/13  10.126.94.175(sw175-Luke-18slot)
             fc6/1  0x47(71)          fc18/45  10.126.94.175(sw175-Luke-18slot)
             fc6/3  0x47(71)          fc13/33  10.126.94.175(sw175-Luke-18slot)
-           fc6/13 0x92(146)           fc127/57  10.126.94.121(sw-L16-Yushan-121)
+           fc6/13 0x92(146)           fc127/57  10.126.94.121(_sw-L16-Yushan-121)
            fc6/31  0x47(71)           fc13/3  10.126.94.175(sw175-Luke-18slot)
            fc6/41  0x47(71)          fc17/41  10.126.94.175(sw175-Luke-18slot)
            fc6/42  0x47(71)          fc17/42  10.126.94.175(sw175-Luke-18slot)
@@ -258,7 +258,7 @@ FC Topology for VSAN 121 :
            fc127/46 0xde(222)          fc18/13  10.126.94.175(sw175-Luke-18slot)
             fc6/1 0xde(222)          fc18/45  10.126.94.175(sw175-Luke-18slot)
             fc6/3 0xde(222)          fc13/33  10.126.94.175(sw175-Luke-18slot)
-           fc6/13 0xca(202)           fc127/57  10.126.94.121(sw-L16-Yushan-121)
+           fc6/13 0xca(202)           fc127/57  10.126.94.121(_sw-L16-Yushan-121)
            fc6/31 0xde(222)           fc13/3  10.126.94.175(sw175-Luke-18slot)
            fc6/41 0xde(222)          fc17/41  10.126.94.175(sw175-Luke-18slot)
            fc6/42 0xde(222)          fc17/42  10.126.94.175(sw175-Luke-18slot)
@@ -271,7 +271,7 @@ FC Topology for VSAN 221 :
            fc127/46 0xa9(169)          fc18/13  10.126.94.175(sw175-Luke-18slot)
             fc6/1 0xa9(169)          fc18/45  10.126.94.175(sw175-Luke-18slot)
             fc6/3 0xa9(169)          fc13/33  10.126.94.175(sw175-Luke-18slot)
-           fc6/13 0x8e(142)           fc127/57  10.126.94.121(sw-L16-Yushan-121)
+           fc6/13 0x8e(142)           fc127/57  10.126.94.121(_sw-L16-Yushan-121)
            fc6/31 0xa9(169)           fc13/3  10.126.94.175(sw175-Luke-18slot)
            fc6/41 0xa9(169)          fc17/41  10.126.94.175(sw175-Luke-18slot)
            fc6/42 0xa9(169)          fc17/42  10.126.94.175(sw175-Luke-18slot)
@@ -284,7 +284,7 @@ FC Topology for VSAN 222 :
            fc127/46 0xc8(200)          fc18/13  10.126.94.175(sw175-Luke-18slot)
             fc6/1 0xc8(200)          fc18/45  10.126.94.175(sw175-Luke-18slot)
             fc6/3 0xc8(200)          fc13/33  10.126.94.175(sw175-Luke-18slot)
-           fc6/13 0x85(133)           fc127/57  10.126.94.121(sw-L16-Yushan-121)
+           fc6/13 0x85(133)           fc127/57  10.126.94.121(_sw-L16-Yushan-121)
            fc6/31 0xc8(200)           fc13/3  10.126.94.175(sw175-Luke-18slot)
            fc6/41 0xc8(200)          fc17/41  10.126.94.175(sw175-Luke-18slot)
            fc6/42 0xc8(200)          fc17/42  10.126.94.175(sw175-Luke-18slot)
