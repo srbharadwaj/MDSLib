@@ -15,13 +15,13 @@ class Fc(Interface):
     Fc interface module
     extends Interface module
 
-        :param switch: switch object
-        :type switch: Switch
-        :param name: name of fc interface
-        :type name: str
-        :raises InvalidInterface: when interface name is incorrect while creating object
-        :example:
-            >>> fcobj = Fc(switch = switch_obj, name = "fc1/1")
+    :param switch: switch object
+    :type switch: Switch
+    :param name: name of fc interface
+    :type name: str
+    :raises InvalidInterface: when interface name is incorrect while creating object
+    :example:
+    >>> fcobj = Fc(switch = switch_obj, name = "fc1/1")
 
     """
 

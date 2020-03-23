@@ -179,7 +179,7 @@ class DeviceAlias(object):
         :param namepwwn: name and pwwwn
         :type namepwwn: dict (name: pwwn)
         :return: None
-        :raises CLIError:If there is any cli command error
+        :raises CLIError: If there is any cli command error
 
         :example:
             >>>

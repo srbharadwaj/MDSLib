@@ -15,25 +15,26 @@ log = logging.getLogger(__name__)
 
 
 class Zone(object):
-    def __init__(self, switch, vsan, name):
-        """
-        Zone module
+    """
+    Zone module
 
-        :param switch: switch object on which zone operations needs to be executed
-        :type switch: Switch
-        :param vsan: vsan object on which zone operations needs to be executed
-        :type vsan: Vsan
-        :param name: zone name with which zone operations needs to be executed
-        :type name: str
-        :raises VsanNotPresent: if vsan is not present on the switch
-        :example:
-            >>>
-            >>> switch_obj = Switch(ip_address = switch_ip, username = switch_username, password = switch_password)
-            >>> vsan_obj = Vsan(switch = switch_obj, id = 2)
-            >>> vsan_obj.create()
-            >>> zoneObj = Zone(switch_obj,vsan_obj,"zone_fab_a")
-            >>>
-        """
+    :param switch: switch object on which zone operations needs to be executed
+    :type switch: Switch
+    :param vsan: vsan object on which zone operations needs to be executed
+    :type vsan: Vsan
+    :param name: zone name with which zone operations needs to be executed
+    :type name: str
+    :raises VsanNotPresent: if vsan is not present on the switch
+    :example:
+        >>>
+        >>> switch_obj = Switch(ip_address = switch_ip, username = switch_username, password = switch_password)
+        >>> vsan_obj = Vsan(switch = switch_obj, id = 2)
+        >>> vsan_obj.create()
+        >>> zoneObj = Zone(switch_obj,vsan_obj,"zone_fab_a")
+        >>>
+    """
+
+    def __init__(self, switch, vsan, name):
         self.__swobj = switch
         self._vsanobj = vsan
         self._vsan = self._vsanobj.id
