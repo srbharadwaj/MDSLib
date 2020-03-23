@@ -134,7 +134,7 @@ class SwitchUtils:
             ...     print("mod modtype is   : " + eachmod.module_type)
             ...     print("mod model is     : " + eachmod.model)
             ...     print("mod modnumber is : " + str(eachmod.module_number))
-            ...     print("")
+            ...     print("##")
             >>>
             >>>
             mod status is    : ok
@@ -142,27 +142,25 @@ class SwitchUtils:
             mod modtype is   : 2/4/8/10/16 Gbps Advanced FC Module
             mod model is     : DS-X9448-768K9
             mod modnumber is : 1
-
+            ##
             mod status is    : ok
             mod ports is     : 48
             mod modtype is   : 4/8/16/32 Gbps Advanced FC Module
             mod model is     : DS-X9648-1536K9
             mod modnumber is : 3
-
+            ##
             mod status is    : ok
             mod ports is     : 48
             mod modtype is   : 2/4/8/10/16 Gbps Advanced FC Module
             mod model is     : DS-X9448-768K9
             mod modnumber is : 4
-
+            ##
             mod status is    : active
             mod ports is     : 0
             mod modtype is   : Supervisor Module-3
             mod model is     : DS-X97-SF1-K9
             mod modnumber is : 5
             >>>
-            >>>
-
         """
 
         mlist = []
