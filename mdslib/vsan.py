@@ -18,15 +18,15 @@ class Vsan(object):
 
     :param switch: switch object on which vsan operations need to be executed
     :type switch: Switch
-    :param id: vsan ID
+    :param id: vsan id
     :type id: int
 
     :example:
-        >>> vsan_obj = Vsan(switch = switch_obj, id = 2)
+        >>> vsan_obj = Vsan(switch=switch_obj, id=2)
 
     .. warning:: id must be within range 1-4094 (4079,4094 are reserved)
 
-            """
+    """
 
     def __init__(self, switch, id):
         self.__swobj = switch

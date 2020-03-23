@@ -192,7 +192,6 @@ class Zone(object):
         :getter:
         :return: mode: get the current zone mode
         :rtype: str
-        :raises VsanNotPresent: if vsan is not present on the switch
         :example:
             >>>
             >>> print(zoneObj.mode)
@@ -239,7 +238,6 @@ class Zone(object):
         :getter:
         :return: default_zone: default zone status of the zone
         :rtype: str
-        :raises VsanNotPresent: if vsan is not present on the switch
         :example:
             >>>
             >>> print(zoneObj.default_zone)
@@ -286,7 +284,6 @@ class Zone(object):
         :getter:
         :return: smart_zone : get smart zone status
         :rtype: str
-        :raises VsanNotPresent: if vsan is not present on the switch
         :example:
             >>>
             >>> print(zoneObj.smart_zone)
@@ -668,10 +665,10 @@ class Zone(object):
             >>> zoneObj.create()
             >>> int12 = Fc(sw, "fc1/2")
             >>> int13 = Fc(sw, "fc1/3")
-            # add members as a list
+            # Remove members as a list
             >>> zoneObj.remove_members([int12, int13, "somename", "11:22:33:44:55:66:77:88"])
             >>>
-            # add members as a dict
+            # Remove members as a dict
             >>> memlist = [{'pwwn': '50:08:01:60:08:9f:4d:00'},
             ... {'pwwn': '50:08:01:60:08:9f:4d:01'},
             ... {'interface': int13.name},

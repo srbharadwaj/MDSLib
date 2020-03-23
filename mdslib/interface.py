@@ -227,7 +227,7 @@ class Interface(object):
         :return: counters handler
         :rtype: Counters
         :example:
-            >>> counters = int_obj.counters
+            >>> intcounters = int_obj.counters
             >>>
         """
         return self.Counters(self)
@@ -284,6 +284,12 @@ class Interface(object):
 
             :return: brief: Returns brief counters details of the interface
             :rtype: dict (name:value)
+            :example:
+                >>>
+                >>> intcounters = int_obj.counters
+                >>> print(intcounters.brief)
+                {'input_rate': 0, 'frames_in': 14970, 'output_rate': 0, 'frames_out': 14831}
+                >>>
             """
             out = self.__intobj._execute_counters_brief_cmd()
             out.pop(interfacekeys.INTERFACE)
@@ -296,6 +302,17 @@ class Interface(object):
 
             :return: total_stats: total stats from the detailed counters of the interface
             :rtype: dict (name:value)
+            :example:
+                >>>
+                >>> intcounters = int_obj.counters
+                >>> print(intcounters.total_stats)
+                {'rx_total_frames': 14970, 'tx_total_frames': 14831, 'rx_total_bytes': 2235488, 'tx_total_bytes': 1733508, 'rx_total_multicast': 0,
+                'tx_total_multicast': 0, 'rx_total_broadcast': 0, 'tx_total_broadcast': 0, 'rx_total_unicast': 14970, 'tx_total_unicast': 14831,
+                'rx_total_discard': 0, 'tx_total_discard': 0, 'rx_total_error': 0, 'tx_total_error': 0, 'rx_c_2_frames': 0, 'tx_c_2_frames': 0,
+                'rx_c_2_bytes': 0, 'tx_c_2_bytes': 0, 'rx_c_2_discards': 0, 'rx_c_2_port_rjt_frames': 0, 'rx_c_3_frames': 14962, 'tx_c_3_frames': 14823,
+                'rx_c_3_bytes': 2235072, 'tx_c_3_bytes': 1733092, 'rx_c_3_discards': 0, 'rx_c_f_frames': 8, 'tx_c_f_frames': 8, 'rx_c_f_bytes': 416,
+                'tx_c_f_bytes': 416, 'rx_c_f_discards': 0}
+                >>>
             """
             out = self.__intobj._execute_counters_detailed_cmd()
             total = out.get('TABLE_total', None)
@@ -310,6 +327,16 @@ class Interface(object):
 
             :return: link_stats: link stats from the detailed counters of the interface
             :rtype: dict (name:value)
+            :example:
+                >>>
+                >>> intcounters = int_obj.counters
+                >>> print(intcounters.link_stats)
+                {'link_failures': 2, 'sync_loss': 0, 'signal_loss': 0, 'prm_seq_pro_err': 0, 'inv_trans_err': 0,
+                'inv_crc': 0, 'delim_err': 0, 'frag_frames_rcvd': 0, 'frames_eof_abort': 0, 'unknown_class_frames_rcvd': 0,
+                'runt_frames': 0, 'jabber_frames': 0, 'too_long': 0, 'too_short': 0, 'fec_corrected': 0, 'fec_uncorrected': 0,
+                'rx_link_reset': 0, 'tx_link_reset': 0, 'rx_link_reset_resp': 4, 'tx_link_reset_resp': 2, 'rx_off_seq_err': 6,
+                'tx_off_seq_err': 8, 'rx_non_oper_seq': 3, 'tx_non_oper_seq': 2}
+                >>>
             """
             out = self.__intobj._execute_counters_detailed_cmd()
             total = out.get('TABLE_link', None)
@@ -324,6 +351,12 @@ class Interface(object):
 
             :return: loop_stats: loop stats from the detailed counters of the interface
             :rtype: dict (name:value)
+            :example:
+                >>>
+                >>> intcounters = int_obj.counters
+                >>> print(intcounters.loop_stats)
+                {'rx_f8_lip_seq_err': 0, 'tx_f8_lip_seq_err': 0, 'rx_non_f8_lip_seq_err': 0, 'tx_non_f8_lip_seq_err': 0}
+                >>>
             """
             out = self.__intobj._execute_counters_detailed_cmd()
             total = out.get('TABLE_loop', None)
@@ -338,6 +371,14 @@ class Interface(object):
 
             :return: congestion_stats: congestion stats from the detailed counters of the interface
             :rtype: dict (name:value)
+            :example:
+                >>>
+                >>> intcounters = int_obj.counters
+                >>> print(intcounters.congestion_stats)
+                {'timeout_discards': 0, 'credit_loss': 0, 'bb_scs_resend': 0, 'bb_scr_incr': 0, 'txwait': 0,
+                'tx_wait_unavbl_1s': 0, 'tx_wait_unavbl_1m': 0, 'tx_wait_unavbl_1hr': 0, 'tx_wait_unavbl_72hr': 0,
+                'rx_b2b_credit_remain': 1, 'tx_b2b_credit_remain': 0, 'tx_b2b_low_pri_cre': 0, 'rx_b2b_credits': 0, 'tx_b2b_credits': 0}
+                >>>
             """
             out = self.__intobj._execute_counters_detailed_cmd()
             total = out.get('TABLE_congestion', None)
@@ -352,6 +393,13 @@ class Interface(object):
 
             :return: other_stats: other stats from the detailed counters of the interface
             :rtype: dict (name:value)
+            :example:
+                >>>
+                >>> intcounters = int_obj.counters
+                >>> print(intcounters.other_stats)
+                {'pg_acl_drops': 0, 'pg_fib_start': '1', 'pg_fib_end': '16', 'pg_fib_drops': 0, 'pg_xbar_start': '1',
+                'pg_xbar_end': '16', 'pg_xbar_drops': 0, 'pg_other_drops': 0}
+                >>>
             """
             out = self.__intobj._execute_counters_detailed_cmd()
             total = out.get('TABLE_others', None)

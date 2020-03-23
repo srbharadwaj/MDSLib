@@ -1,14 +1,9 @@
 import logging
 import re
 
-from .utility.allexceptions import CommonException
+from .utility.allexceptions import InvalidProfile
 
 log = logging.getLogger(__name__)
-
-
-class InvalidProfile(CommonException):
-    pass
-
 
 # SAMPLE PROFILE
 # protocol: scsi
@@ -177,6 +172,7 @@ class Analytics():
         :type differential: bool (Default = False)
         :param interval: query interval that needs to be set
         :type interval: interval (Default = 30)
+        :raises InvalidProfile: If the profile passed is not correct
 
         :return: switch response to the create query cli and the error if any
         :rtype: tuple: (output, error)
@@ -234,6 +230,7 @@ class Analytics():
         :type clear: bool (Default = False)
         :param differential: set to True to add differential option to the pull query else set to False
         :type differential: bool (Default = False)
+        :raises InvalidProfile: If the profile passed is not correct
 
         :return: switch response to the show query cli and the error if any
         :rtype: tuple: (output, error)
@@ -283,6 +280,7 @@ class Analytics():
 
         :param profile: profile to get the pull query result
         :type profile: dict('protocol': value , 'metrics': [values], 'view': value)
+        :raises InvalidProfile: If the profile passed is not correct
 
         :return: switch response to the show query cli and the error if any
         :rtype: tuple: (output, error)
@@ -310,6 +308,7 @@ class Analytics():
 
         :param profile: profile to get the pull query result
         :type profile: dict('protocol': value , 'metrics': [values], 'view': value)
+        :raises InvalidProfile: If the profile passed is not correct
 
         :return: switch response to the show query cli and the error if any
         :rtype: tuple: (output, error)

@@ -20,9 +20,9 @@ class SwitchUtils:
         Returns all the interfaces of the switch in dictionary format(interface name:interface object)
 
         :return: Returns all the interfaces(Fc and PortChannel) on the switch in dictionary format(interface name:interface object)
-        :rtype: dict(name:Interface)
+        :rtype: dict(name:Interface(Fc or PortChannel)
         :example:
-            >>> allint = sw.interfaces
+            >>> allint = switch_obj.interfaces
             >>> print(allint)
             {'fc1/1': <mdslib.fc.Fc object at 0x10bd5da90>, 'fc1/2': <mdslib.fc.Fc object at 0x10bde4050>, 'fc1/3': <mdslib.fc.Fc object at 0x10bd5d650>,
              'fc1/4': <mdslib.fc.Fc object at 0x10bd5df90>, 'fc1/5': <mdslib.fc.Fc object at 0x10bd5d9d0>, .....
@@ -67,9 +67,9 @@ class SwitchUtils:
         Returns all the vsans present on the switch in dictionary format(vsan-id:vsan object)
 
         :return: Returns all the vsans present on the switch in dictionary format(vsan-id:vsan object)
-        :rtype: dict(vsan-id:Vsan)
+        :rtype: dict(vsan-id : Vsan)
         :example:
-            >>> allvsans = sw.vsans
+            >>> allvsans = switch_obj.vsans
             >>> print(allvsans)
             {'1': <mdslib.vsan.Vsan object at 0x10d88a290>, '10': <mdslib.vsan.Vsan object at 0x10d88a1d0>,
              '11': <mdslib.vsan.Vsan object at 0x10d88a150>,  .....
@@ -127,7 +127,7 @@ class SwitchUtils:
         :return: list of modules present on the switch
         :rtype: list(Module)
         :example:
-            >>> mods = sw.modules
+            >>> mods = switch_obj.modules
             >>> for eachmod in mods:
             ...     print("mod status is    : " + eachmod.status)
             ...     print("mod ports is     : " + str(eachmod.ports))

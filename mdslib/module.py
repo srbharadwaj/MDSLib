@@ -7,7 +7,7 @@ log = logging.getLogger(__name__)
 
 class Module(object):
     """
-        Switch Module class
+        Switch's module class
 
         :example:
             >>> switch_obj = Switch(ip_address = switch_ip, username = switch_username, password = switch_password )

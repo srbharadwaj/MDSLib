@@ -18,12 +18,8 @@ log = logging.getLogger(__name__)
 
 
 def log_exception(logger):
-    """
-    A decorator that wraps the passed in function and logs
-    exceptions should one occur
-
-    @param logger: The logging object
-    """
+    # A decorator that wraps the passed in function and logs
+    # exceptions should one occur
 
     def decorator(func):
         def wrapper(*args, **kwargs):
@@ -36,9 +32,7 @@ def log_exception(logger):
                 logger.exception(err)
             # re-raise the exception
             raise
-
         return wrapper
-
     return decorator
 
 
@@ -401,10 +395,15 @@ class Switch(SwitchUtils):
 
     def show(self, command, raw_text=False):
         """
+        Send a show command to the switch
 
         :param command: The command to send to the switch.
-        :param raw_text: Whether to return raw text or structured data.
-        :return: The output of the show command, which could be raw text or structured data.
+        :type command: str
+        :param raw_text: If true then returns the command output in raw text(str) else it returns structured data(dict)
+        :type raw_text: bool (default: False)
+        :raises CLIError: If there is a problem with the supplied command.
+        :return: The output of the show command, which could be raw text(str) or structured data(dict).
+        :rtype: dict
         """
 
         commands = [command]
@@ -416,11 +415,15 @@ class Switch(SwitchUtils):
 
     def show_list(self, commands, raw_text=False):
         """
+        Send a list of show commands to the switch
 
-        :rtype: object
-        :param list commands:
-        :param bool raw_text:
-        :return:
+        :param commands: The list of commands to send to the switch.
+        :type commands: list
+        :param raw_text: If true then returns the command output in raw text(str) else it returns structured data(dict)
+        :type raw_text: bool (default: False)
+        :raises CLIError: If there is a problem with the supplied command.
+        :return: The output of the show command, which could be raw text(str) or structured data(dict).
+        :rtype: list
         """
         return_list = []
         if raw_text:
@@ -443,29 +446,30 @@ class Switch(SwitchUtils):
 
     def config(self, command, rpc=u'2.0', method=u'cli'):
         """
+        Send any command to run from the config mode
 
-        :param command:
-        :param rpc:
-        :param method:
-        :return:
+        :param command: command to send to the switch
+        :type command: str
+        :raises CLIError: If there is a problem with the supplied command.
+        :return: command output
+
         """
-        """Send a configuration command.
-        Args:
-            command (str): The command to send to the device.
-        Raises:
-            CLIError: If there is a problem with the supplied command.
-        """
+
         commands = [command]
         list_result = self.config_list(commands, rpc, method)
         return list_result[0]
 
     def config_list(self, commands, rpc=u'2.0', method=u'cli'):
-        """Send a list of configuration commands.
-        Args:
-            commands (list): A list of commands to send to the device.
-        Raises:
-            CLIError: If there is a problem with one of the commands in the list.
         """
+        Send any list of commands to run from the config mode
+
+        :param commands: list of commands to send to the switch
+        :type command: list
+        :raises CLIError: If there is a problem with the supplied command.
+        :return: command output
+
+        """
+
         return_list = self._cli_command(commands, rpc=rpc, method=method)
 
         log.debug("Config commands sent are :")
@@ -475,8 +479,18 @@ class Switch(SwitchUtils):
 
         return return_list
 
-    def reload(self, module: int = None, timeout: int = 300, copyrs=True):
+    def reload(self, module=None, timeout=300, copyrs=True):
+        """
+        Reload a switch or a module
 
+        :param module: if set to None reloads the switch else reloads the particular module
+        :type module: int (default: None)
+        :param timeout: time to wait for the switch/module to come up
+        :type timeout: int (default: 300)
+        :param copyrs: if set to True, executes copy r s before doing a reload
+        :type copyrs: bool (default: True)
+        :return: Returns {FAILED: <failed reason>} or {'SUCESS': None}
+        """
         if module is None:
             # Switch reload
             cmd = "terminal dont-ask ; reload"

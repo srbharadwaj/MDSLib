@@ -21,7 +21,7 @@ class CommonException(Exception):
 
     __str__ = __repr__
 
-
+# zone related exceptions
 class InvalidZoneMode(CommonException):
     pass
 
@@ -34,6 +34,7 @@ class VsanNotPresent(CommonException):
     pass
 
 
+# interface related exceptions
 class InvalidInterface(CommonException):
     pass
 
@@ -54,6 +55,7 @@ class InvalidMode(CommonException):
     pass
 
 
+# portchannel related exceptions
 class PortChannelNotPresent(CommonException):
     pass
 
@@ -61,14 +63,17 @@ class PortChannelNotPresent(CommonException):
 class InvalidPortChannelRange(CommonException):
     pass
 
-
 class InvalidChannelMode(CommonException):
     pass
-
 
 class ZoneNotPresent(CommonException):
     pass
 
 
+# Analytics related exceptions
 class InvalidAnalyticsType(CommonException):
+    pass
+
+
+class InvalidProfile(CommonException):
     pass
