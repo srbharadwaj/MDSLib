@@ -12,7 +12,7 @@ from .connection_manager.errors import CLIError
 from .connection_manager.ssh import SSHSession
 from .nxapikeys import versionkeys
 from .parsers.system.shtopology import ShowTopology
-from .utility._switch_utility import SwitchUtils
+from .utility.switch_utility import SwitchUtils
 
 log = logging.getLogger(__name__)
 

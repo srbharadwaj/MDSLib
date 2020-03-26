@@ -232,6 +232,7 @@ class ZoneSet(object):
     def is_active(self):
         """
          Check if the zoneset is active or not
+
          :return: True if zoneset is active, False otherwise
          :rtype: bool
          :raises VsanNotPresent: if vsan is not present on the switch

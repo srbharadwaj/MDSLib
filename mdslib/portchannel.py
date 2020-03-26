@@ -115,7 +115,7 @@ class PortChannel(Interface):
         """
         Get the members of the port-channel
 
-        :return:members of the port-channel in dictionary format, None if port-channel is not present or port-channel has no members
+        :return: members of the port-channel in dictionary format, None if port-channel is not present or port-channel has no members
         :rtype: dict(name: obj(Fc))
         """
 

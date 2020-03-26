@@ -237,7 +237,7 @@ class Zone(object):
         get default zone
 
         :getter:
-        :return: default_zone: default zone status of the zone
+        :return: default_zone: default zone status
         :rtype: str
         :example:
             >>>
@@ -619,9 +619,9 @@ class Zone(object):
         Add members to the zone
 
         :param members: add members to the zone, there are 2 ways you can add members to the zone
-            a list of members - Fc/Port-channel interface object, device-alias, pwwn
+            (1) a list of members - Fc/Port-channel interface object, device-alias, pwwn
             or
-            a dict of members - here key will be valid zone member type like "pwwn","device-alias","interface" etc..
+            (2) a dict of members - here key will be valid zone member type like "pwwn","device-alias","interface" etc..
         :type members: list or dict
         :raises VsanNotPresent: if vsan is not present on the switch
         :raises InvalidZoneMemberType: if zone member type is invalid
@@ -654,9 +654,9 @@ class Zone(object):
         Remove members from the zone
 
         :param members: Remove members from the zone, there are 2 ways you can remove members from the zone
-            a list of members - Fc/Port-channel interface object, device-alias, pwwn
+            (1) a list of members - Fc/Port-channel interface object, device-alias, pwwn
             or
-            a dict of members - here key will be valid zone member type like "pwwn","device-alias","interface" etc..
+            (2) a dict of members - here key will be valid zone member type like "pwwn","device-alias","interface" etc..
         :type members: list or dict
         :raises VsanNotPresent: if vsan is not present on the switch
         :raises InvalidZoneMemberType: if zone member type is invalid

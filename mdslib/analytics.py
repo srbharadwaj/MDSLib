@@ -219,7 +219,7 @@ class Analytics():
 
     def show_query(self, name=None, profile=None, clear=False, differential=False):
         """
-        Show analytics query result
+
         Get result for installed query or do a pull query
 
         :param name: name of the query installed for which result needs to be pulled out
@@ -337,8 +337,7 @@ class Analytics():
 
         :param module: module number for which we need to get NPU load
         :type module: int
-        :param protocol: protocol for which NPU load needs to be fetched,
-                if 'scsi' gets scsi NPU load, if 'nvme', gets nvme NPU load, if None, gets total NPU load
+        :param protocol: protocol for which NPU load needs to be fetched, options are ‘scsi’, ‘name’ or ‘None’(both scsi and nvme)
         :type protocol: str (Default = None)
         :values: 'scsi,'nvme',None
 
@@ -521,8 +520,7 @@ class Analytics():
 
         :param module: module number for which we need to get total targets
         :type module: int (Default = None)
-        :param protocol: protocol for which we need to get total targets
-                if 'scsi' gets scsi targets, if 'nvme', gets nvme targets, if None, gets total targets
+        :param protocol: protocol for which we need to get total targets, options are 'scsi','nvme',None(both scsi and nvme)
         :type protocol: str (Default = None)
         :values: 'scsi,'nvme',None
 

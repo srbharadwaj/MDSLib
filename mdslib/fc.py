@@ -13,13 +13,12 @@ log = logging.getLogger(__name__)
 class Fc(Interface):
     """
     Fc interface module
-    extends Interface module
 
     :param switch: switch object
     :type switch: Switch
     :param name: name of fc interface
     :type name: str
-    :raises InvalidInterface: when interface name is incorrect while creating object
+    :raises InvalidInterface: when interface name is incorrect
     :example:
     >>> fcobj = Fc(switch = switch_obj, name = "fc1/1")
 
@@ -231,9 +230,9 @@ class Fc(Interface):
         @property
         def cisco_id(self):
             """
-            Returns the cisco-id of the sfp if present
+            Returns the cisco id of the sfp if present
 
-            :return: the cisco-id of the sfp if present
+            :return: the cisco id of the sfp if present
             :rtype: str
             :example:
                 >>> fcobj = Fc(switch = switch_obj, name = "fc1/1")
