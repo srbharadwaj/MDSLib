@@ -12,6 +12,7 @@ from .connection_manager.errors import CLIError
 from .connection_manager.ssh import SSHSession
 from .nxapikeys import versionkeys
 from .parsers.system.shtopology import ShowTopology
+from .utility.allexceptions import UnsupportedVersion
 from .utility.switch_utility import SwitchUtils
 
 log = logging.getLogger(__name__)
@@ -79,6 +80,36 @@ class Switch(SwitchUtils):
         self.can_connect = False
         # Get version of the switch and log it
         self.log_version()
+
+        # Verify that version is 8.4(2) and above
+        self._verify_supported_version()
+
+    def _verify_supported_version(self):
+        ver = self.version
+        PAT_VER = "(?P<major_plus>\d+)\.(?P<major>\d+)\((?P<minor>\d+)(?P<patch>.*)\)"
+        RE_COMP = re.compile(PAT_VER)
+        result_ver = RE_COMP.match(ver)
+        if result_ver:
+            try:
+                result_dict = result_ver.groupdict()
+                majorplus = int(result_dict['major_plus'])
+                major = int(result_dict['major'])
+                minor = int(result_dict['minor'])
+                patch = result_dict['patch']
+                if majorplus >= 8 and major >= 4 and minor >= 2:
+                    log.debug("Switch version is " + ver + ". This is a supported switch version")
+                else:
+                    raise UnsupportedVersion(
+                        "Switch version: " + ver + "\n SDK does not support this switch version. Supported version are 8.4(2) and above")
+            except KeyError:
+                raise UnsupportedVersion(
+                    "Switch version: " + ver + "\n SDK does not support this switch version. Supported version are 8.4(2) and above")
+            except ValueError:
+                raise UnsupportedVersion(
+                    "Switch version: " + ver + "\n SDK does not support this switch version. Supported version are 8.4(2) and above")
+        else:
+            raise UnsupportedVersion(
+                "Switch version: " + ver + "\n SDK does not support this switch version. Supported version are 8.4(2) and above")
 
     @log_exception(log)
     def log_version(self):
@@ -170,7 +201,7 @@ class Switch(SwitchUtils):
         :raises CLIError: Raises if there was a command error or some generic error due to which version could not be fetched
         :example:
             >>> print(switch_obj.version)
-            8.4(1)
+            8.4(2)
             >>>
         """
 

@@ -14,7 +14,7 @@ from mdslib.vsan import Vsan
 # Lets set the basic switch inputs
 user = 'admin'
 pw = 'nbv!2345'
-ipaddr = '10.126.94.129'
+ipaddr = '10.126.94.121'
 port = 8443
 
 # ######################################################
@@ -60,7 +60,7 @@ print("name : " + sw.name)
 # #######################################
 
 # Let us change the switchname back to the old one
-sw.name = "_sw-L16-Yushan-121"
+sw.name = "sw-L16-Yushan-121"
 
 # Print the switch name
 print("name : " + sw.name)

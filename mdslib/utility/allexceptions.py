@@ -21,6 +21,11 @@ class CommonException(Exception):
 
     __str__ = __repr__
 
+
+class UnsupportedVersion(CommonException):
+    pass
+
+
 # zone related exceptions
 class InvalidZoneMode(CommonException):
     pass
