@@ -2,12 +2,15 @@ import logging
 
 import time
 
-from .connection_manager.errors import CLIError
+from .connection_manager.errors import CLIError, CustomException
 from .nxapikeys import zonekeys
-from .utility.allexceptions import VsanNotPresent, ZoneNotPresent
-from .zone import Zone
+from .zone import Zone, VsanNotPresent
 
 log = logging.getLogger(__name__)
+
+
+class ZoneNotPresent(CustomException):
+    pass
 
 
 class ZoneSet(object):

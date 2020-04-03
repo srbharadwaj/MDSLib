@@ -1,12 +1,11 @@
 import logging
 import re
 
-from .connection_manager.errors import CLIError
+from .connection_manager.errors import CLIError, VsanNotPresent, InvalidInterface
 from .constants import PAT_FC, PAT_PC
 from .fc import Fc
 from .nxapikeys import vsankeys
 from .portchannel import PortChannel
-from .utility.allexceptions import VsanNotPresent, InvalidInterface
 
 log = logging.getLogger(__name__)
 

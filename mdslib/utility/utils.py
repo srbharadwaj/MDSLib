@@ -1,6 +1,6 @@
 import re
 
-from mdslib.constants import PAT_WWN
+from ..constants import PAT_WWN
 
 
 def is_pwwn_valid(pwwn):

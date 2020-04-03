@@ -1,13 +1,13 @@
-**MDS API/SDK Library**
+# Python SDK/API library for Cisco MDS Switches.
 
-A common library to work with Cisco MDS switches.
 This library will be useful for automating day to day tasks or developing new tools which involve Cisco MDS switches
 
-Supported NXOS image: 8.4(2) and above
+* Supported NXOS image: 8.4(2) and above
+* Python version: 3.6 and above
+* Apache License, Version 2.0 (the "License")
 
-Python version: 3.6 and above
 
-###### **Steps to run it:**
+## Installation
 1) First create a virtual environment with python3
 
        virtualenv mytestlib -p python3
@@ -43,3 +43,5 @@ Python version: 3.6 and above
         setuptools 45.1.0    
         urllib3    1.25.8    <---
         wheel      0.33.6  `
+        
+## Documentation

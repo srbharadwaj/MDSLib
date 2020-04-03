@@ -42,16 +42,6 @@ class ConnectNxapi(object):
             log.debug("'verify_ssl' flag is set to True, so hopefully SSL connections is setup")
 
     def _build_payload(self, commands, rpc_version, method):
-        """
-
-        Args:
-            commands:
-            method:
-            rpc_version:
-
-        Returns:
-
-        """
 
         if rpc_version is not None:
             payload_list = []
@@ -84,13 +74,11 @@ class ConnectNxapi(object):
     def send_request(self, commands, rpc_version=u'2.0', method=u'cli', timeout=30):
         """
 
-        Args:
-            commands:
-            method:
-            timeout:
-
-        Returns:
-            response_list
+        :param commands:
+        :param rpc_version:
+        :param method:
+        :param timeout:
+        :return:
         """
         timeout = int(timeout)
         payload = self._build_payload(commands, rpc_version, method)

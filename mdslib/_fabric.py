@@ -4,7 +4,7 @@ import logging
 import threading
 from functools import wraps
 
-from mdslib.switch import Switch
+from .switch import Switch
 
 log = logging.getLogger(__name__)
 
@@ -12,12 +12,9 @@ log = logging.getLogger(__name__)
 def wait_till_connect_threads_complete(fn):
     """
     Decorator which will check if all the threads are complete by doing a join
-    Args:
-        fn: Function that needs to be decorated.
-            This function 'fn' is called and after which we wait till all the child threads with the name 'connect' are finished
-    Returns:
-        None
-
+    :param fn: Function that needs to be decorated.
+                This function 'fn' is called and after which we wait till all the child threads with the name 'connect' are finished
+    :return: None
     """
 
     @wraps(fn)

@@ -29,7 +29,6 @@ sw = Switch(
     timeout=30,
     verify_ssl=False)
 
-
 # Get basic information of the switch
 print("ip    : " + sw.ipaddr)
 print("name  : " + sw.name)
@@ -37,7 +36,14 @@ print("ver   : " + sw.version)
 print("model : " + sw.model)
 print("Sw interfaces: ")
 print(sw.interfaces)
+print(sw.feature('analytics'))
+sw.feature('analytics', True)
+print(sw.feature('analytics'))
+sw.feature('nxapi', False)
+print(sw.feature('analytics'))
+import time;
 
+time.sleep(30000)
 # #######################################
 # Output of the above prints are as follows
 # #######################################

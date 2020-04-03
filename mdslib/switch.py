@@ -8,14 +8,21 @@ import time
 
 from .analytics import Analytics
 from .connection_manager.connect_nxapi import ConnectNxapi
-from .connection_manager.errors import CLIError
-from .connection_manager.ssh import SSHSession
-from .nxapikeys import versionkeys
+from .connection_manager.connect_ssh import SSHSession
+from .connection_manager.errors import CLIError, CustomException
+from .nxapikeys import versionkeys, featurekeys
 from .parsers.system.shtopology import ShowTopology
-from .utility.allexceptions import UnsupportedVersion
 from .utility.switch_utility import SwitchUtils
 
 log = logging.getLogger(__name__)
+
+
+class UnsupportedVersion(CustomException):
+    pass
+
+
+class UnsupportedConfig(CustomException):
+    pass
 
 
 def log_exception(logger):
@@ -132,6 +139,7 @@ class Switch(SwitchUtils):
 
         :return: IP address of switch
         :rtype: str
+
         :example:
             >>> print(switch_obj.ipaddr)
             10.126.94.101
@@ -149,6 +157,7 @@ class Switch(SwitchUtils):
         :getter:
         :return: switch name
         :rtype: str
+
         :example:
             >>> print(switch_obj.name)
             swTest
@@ -157,6 +166,7 @@ class Switch(SwitchUtils):
         :setter:
         :param name: name of the switch that needs to be set
         :type name: str
+
         :example:
             >>> switch_obj.name = "yourswitchname"
             >>>
@@ -183,6 +193,7 @@ class Switch(SwitchUtils):
 
         :return: Returns True if switch is in NPV, else returns False
         :rtype: bool
+
         :example:
             >>> print(switch_obj.npv)
             False
@@ -199,6 +210,7 @@ class Switch(SwitchUtils):
         :return: version
         :rtype: str
         :raises CLIError: Raises if there was a command error or some generic error due to which version could not be fetched
+
         :example:
             >>> print(switch_obj.version)
             8.4(2)
@@ -220,6 +232,7 @@ class Switch(SwitchUtils):
 
         :return: Returns model of the switch or returns None if model could not be fetched from the switch
         :rtype: str
+
         :example:
             >>> print(switch_obj.model)
             MDS 9710 (10 Slot) Chassis
@@ -240,6 +253,7 @@ class Switch(SwitchUtils):
 
         :return: Returns form factor of the switch or returns None if form factor could not be fetched from the switch
         :rtype: str
+
         :example:
             >>> print(switch_obj.form_factor)
             10 slot
@@ -266,6 +280,7 @@ class Switch(SwitchUtils):
 
         :return: Returns type of the switch or returns None if type could not be fetched from the switch
         :rtype: str
+
         :example:
             >>> print(switch_obj.type)
             9710
@@ -293,6 +308,7 @@ class Switch(SwitchUtils):
 
         :return: Returns image string of the switch or returns None if image string could not be fetched from the switch
         :rtype: str
+
         :example:
             >>> print(switch_obj.image_string)
             m9700-sf3ek9
@@ -334,6 +350,7 @@ class Switch(SwitchUtils):
 
         :return: Returns kickstart image of the switch or returns None if kickstart image could not be fetched from the switch
         :rtype: str
+
         :example:
             >>> print(switch_obj.kickstart_image)
             bootflash:///m9700-sf3ek9-kickstart-mz.8.4.1.bin
@@ -355,6 +372,7 @@ class Switch(SwitchUtils):
 
         :return: Returns system image of the switch or returns None if system image could not be fetched from the switch
         :rtype: str
+
         :example:
             >>> print(switch_obj.system_image)
             bootflash:///m9700-sf3ek9-mz.8.4.1.bin
@@ -375,6 +393,7 @@ class Switch(SwitchUtils):
 
         :return: analytics handler
         :rtype: Analytics
+
         :example:
             >>> ana_handler = switch_obj.analytics
             >>>
@@ -607,6 +626,61 @@ class Switch(SwitchUtils):
             return {'FAILED': [bef, aft]}
         log.info("Reload was successful")
         return {'SUCESS': None}
+
+    def feature(self, name, enable=None):
+        """
+        Enable or disable a feature or get the status of the feature
+        :param name: Name of the feature
+        :param enable: Set to True to enable the feature or set to False to disable the feature or set to None (deafault) to get the status of the feature
+        :return: Returns True of False if enable is set to None
+
+        :example:
+            >>>
+            >>> switch_obj = Switch(ip_address = switch_ip, username = switch_username, password = switch_password)
+            >>> # Get the status of the feature, in this case analytics is disabled
+            >>> ana = switch_obj.feature('analytics')
+            >>> print(ana)
+            False
+            >>> # Now lets enable the feature
+            >>> switch_obj.feature('analytics', True)
+            >>> print(switch_obj.feature('analytics'))
+            True
+            >>> # Now lets disable the feature
+            >>> switch_obj.feature('analytics', False)
+            >>> print(switch_obj.feature('analytics'))
+            False
+            >>>
+
+        .. warning:: Disabling feature 'nxapi' or 'ssh' via this API is not allowed
+
+        """
+        # Do a type check on the enable flag
+        if enable is not None:
+            if type(enable) is not bool:
+                raise TypeError("enable flag must be True(to enable the feature) or False(to disable the feature)")
+
+        if enable is None:
+            log.debug("Get the status of the feature " + name)
+            cmd = "show feature"
+            out = self.show(cmd)
+            list_of_features = out['TABLE_cfcFeatureCtrl2Table']['ROW_cfcFeatureCtrl2Table']
+            for eachfeature in list_of_features:
+                if name == eachfeature[featurekeys.NAME].strip():
+                    if eachfeature[featurekeys.STATUS].strip() == 'enabled':
+                        return True
+                    return False
+            return False
+        elif enable:
+            log.debug("Trying to enable the feature " + name)
+            cmd = "feature " + name
+            self.config(cmd)
+        else:
+            # if we try to disable ssh or nxapi via this SDK then throw an exception
+            if name == 'ssh' or name == 'nxapi':
+                raise UnsupportedConfig("Disabling the feature '" + name + "' via this SDK API is not allowed!!")
+            log.debug("Trying to disable the feature " + name)
+            cmd = "no feature " + name
+            self.config(cmd)
 
     def __is_npv_switch(self):
         jsonoutput = True

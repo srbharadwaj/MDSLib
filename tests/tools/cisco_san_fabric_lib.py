@@ -1,7 +1,7 @@
 import logging
 import pprint
 
-from mdslib.fabric import Fabric
+from mdslib._fabric import Fabric
 
 logFormatter = logging.Formatter("[%(asctime)s] [%(module)-14.14s] [%(levelname)-5.5s] %(message)s")
 log = logging.getLogger()

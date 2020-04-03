@@ -2,11 +2,14 @@ import logging
 
 import time
 
-from .connection_manager.errors import CLIError
+from .connection_manager.errors import CLIError, CustomException
 from .constants import ENHANCED, BASIC
-from .utility.allexceptions import InvalidMode
 
 log = logging.getLogger(__name__)
+
+
+class InvalidMode(CustomException):
+    pass
 
 
 class DeviceAlias(object):

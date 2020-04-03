@@ -3,12 +3,9 @@ import logging
 import paramiko
 from time import sleep
 
+from .errors import SSHException
+
 log = logging.getLogger(__name__)
-
-
-class SSHException(Exception):
-    def __init__(self, message):
-        Exception.__init__(self, message)
 
 
 class SSHConnectionException(SSHException):

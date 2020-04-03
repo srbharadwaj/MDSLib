@@ -3,15 +3,22 @@ import re
 
 import time
 
-from .connection_manager.errors import CLIError
+from .connection_manager.errors import CLIError, CustomException, VsanNotPresent
 from .constants import ENHANCED, BASIC, PERMIT, DENY, PAT_WWN
 from .fc import Fc
 from .nxapikeys import zonekeys
 from .portchannel import PortChannel
-from .utility.allexceptions import InvalidZoneMemberType, InvalidZoneMode
-from .vsan import VsanNotPresent
 
 log = logging.getLogger(__name__)
+
+
+# zone related exceptions
+class InvalidZoneMode(CustomException):
+    pass
+
+
+class InvalidZoneMemberType(CustomException):
+    pass
 
 
 class Zone(object):

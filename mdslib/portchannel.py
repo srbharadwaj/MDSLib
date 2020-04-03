@@ -1,13 +1,26 @@
 import logging
 import re
 
+from .connection_manager.errors import CustomException
 from .constants import ON, ACTIVE, PAT_FC, PAT_PC, VALID_PC_RANGE
 from .fc import Fc
 from .interface import Interface
 from .nxapikeys import portchanelkeys
-from .utility.allexceptions import PortChannelNotPresent, InvalidPortChannelRange, InvalidChannelMode
 
 log = logging.getLogger(__name__)
+
+
+# portchannel related exceptions
+class PortChannelNotPresent(CustomException):
+    pass
+
+
+class InvalidPortChannelRange(CustomException):
+    pass
+
+
+class InvalidChannelMode(CustomException):
+    pass
 
 
 class PortChannel(Interface):
