@@ -1,7 +1,23 @@
+from ..constants import DEFAULT
+
+# --------------------- #
 # show vsan
-VSAN_ID = "vsan"
-VSAN_NAME = "name"
-VSAN_STATE = "state"
-VSAN_INTROP_MODE = "interop_mode"
-VSAN_LOAD_BALANCE = "load_balancing"
-VSAN_OPER_STATE = "operational_state"
+# --------------------- #
+VSAN_ID = {
+    DEFAULT: "vsan"
+}
+VSAN_NAME = {
+    DEFAULT: "name"
+}
+VSAN_STATE = {
+    DEFAULT: "state"
+}
+VSAN_INTROP_MODE = {
+    DEFAULT: "interop_mode"
+}
+VSAN_LOAD_BALANCE = {
+    DEFAULT: "load_balancing"
+}
+VSAN_OPER_STATE = {
+    DEFAULT: "operational_state"
+}

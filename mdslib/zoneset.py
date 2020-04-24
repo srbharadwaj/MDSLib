@@ -4,6 +4,7 @@ import time
 
 from .connection_manager.errors import CLIError, CustomException
 from .nxapikeys import zonekeys
+from .utility.utils import get_key
 from .zone import Zone, VsanNotPresent
 
 log = logging.getLogger(__name__)
@@ -35,6 +36,7 @@ class ZoneSet(object):
 
     def __init__(self, switch, vsan_obj, name):
         self.__swobj = switch
+        self._SW_VER = switch._SW_VER
         self._vsanobj = vsan_obj
         self._vsan = self._vsanobj.id
         if self._vsan is None:
@@ -65,7 +67,7 @@ class ZoneSet(object):
         out = self.__show_zoneset_name()
         if out:
             out = out.get('TABLE_zoneset').get('ROW_zoneset')
-            return out[zonekeys.NAME]
+            return out[get_key(zonekeys.NAME, self._SW_VER)]
         return None
 
     @property
@@ -119,11 +121,11 @@ class ZoneSet(object):
                 if zonedata is not None:
                     zdb = zonedata.get('ROW_zone', None)
                     if type(zdb) is dict:
-                        zname = zdb[zonekeys.NAME]
+                        zname = zdb[get_key(zonekeys.NAME, self._SW_VER)]
                         retlist[zname] = Zone(self.__swobj, self._vsanobj, zname)
                     else:
                         for eachzdb in zdb:
-                            zname = eachzdb[zonekeys.NAME]
+                            zname = eachzdb[get_key(zonekeys.NAME, self._SW_VER)]
                             retlist[zname] = Zone(self.__swobj, self._vsanobj, eachzdb)
                     return retlist
         return None
@@ -252,7 +254,7 @@ class ZoneSet(object):
         log.debug(out)
         if out:
             azsdetails = out['TABLE_zoneset']['ROW_zoneset']
-            azs = azsdetails[zonekeys.NAME]
+            azs = azsdetails[get_key(zonekeys.NAME, self._SW_VER)]
             if azs == self._name:
                 return True
         return False

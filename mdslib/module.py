@@ -1,6 +1,7 @@
 import logging
 
 from .nxapikeys import modulekeys
+from .utility.utils import get_key
 
 log = logging.getLogger(__name__)
 
@@ -22,12 +23,13 @@ class Module(object):
     def __init__(self, switch, mod_num, modinfo):
         self.__swobj = switch
         self.__modinfo = modinfo
+        self._SW_VER = switch._SW_VER
 
         self.__mod_num = mod_num
-        self.__mod_ports = self.__modinfo[modulekeys.MOD_PORTS]
-        self.__mod_modtype = self.__modinfo[modulekeys.MOD_TYPE]
-        self.__mod_model = self.__modinfo[modulekeys.MOD_MODEL]
-        self.__mod_status = self.__modinfo[modulekeys.MOD_STATUS]
+        self.__mod_ports = self.__modinfo[get_key(modulekeys.MOD_PORTS, self._SW_VER)]
+        self.__mod_modtype = self.__modinfo[get_key(modulekeys.MOD_TYPE, self._SW_VER)]
+        self.__mod_model = self.__modinfo[get_key(modulekeys.MOD_MODEL, self._SW_VER)]
+        self.__mod_status = self.__modinfo[get_key(modulekeys.MOD_STATUS, self._SW_VER)]
 
     @property
     def module_number(self):
@@ -48,7 +50,7 @@ class Module(object):
 
         if self.__mod_num is None:
             self.__modinfo = self.__get_modinfo()
-        self.__mod_num = self.__modinfo[modulekeys.MOD_NUM]
+        self.__mod_num = self.__modinfo[get_key(modulekeys.MOD_NUM, self._SW_VER)]
         return int(self.__mod_num)
 
     @property
@@ -69,7 +71,7 @@ class Module(object):
 
         if self.__mod_ports is None:
             self.__modinfo = self.__get_modinfo()
-        self.__mod_ports = self.__modinfo[modulekeys.MOD_PORTS]
+        self.__mod_ports = self.__modinfo[get_key(modulekeys.MOD_PORTS, self._SW_VER)]
         return int(self.__mod_ports)
 
     @property
@@ -89,7 +91,7 @@ class Module(object):
         """
         if self.__mod_modtype is None:
             self.__modinfo = self.__get_modinfo()
-        self.__mod_modtype = self.__modinfo[modulekeys.MOD_TYPE]
+        self.__mod_modtype = self.__modinfo[get_key(modulekeys.MOD_TYPE, self._SW_VER)]
         return self.__mod_modtype
 
     @property
@@ -109,7 +111,7 @@ class Module(object):
         """
         if self.__mod_model is None:
             self.__modinfo = self.__get_modinfo()
-        self.__mod_model = self.__modinfo[modulekeys.MOD_MODEL]
+        self.__mod_model = self.__modinfo[get_key(modulekeys.MOD_MODEL, self._SW_VER)]
         return self.__mod_model
 
     @property
@@ -128,7 +130,7 @@ class Module(object):
             >>>
         """
         self.__modinfo = self.__get_modinfo()
-        self.__mod_status = self.__modinfo[modulekeys.MOD_STATUS]
+        self.__mod_status = self.__modinfo[get_key(modulekeys.MOD_STATUS, self._SW_VER)]
         return self.__mod_status
 
     def __get_modinfo(self):

@@ -88,11 +88,15 @@ class SwitchUtils:
 
     @property
     def zonesets(self):
+        if self.npv:
+            return None
         # TODO
         raise NotImplementedError
 
     @property
     def zones(self):
+        if self.npv:
+            return None
         # TODO
         retlist = {}
         cmd = "show zone"
@@ -176,3 +180,21 @@ class SwitchUtils:
             m = Module(self, eachmodinfo[modulekeys.MOD_NUM], eachmodinfo)
             mlist.append(m)
         return mlist
+
+    @property
+    def flogidb(self):
+        if self.npv:
+            cmd = "show npv flogi-table"
+            out = self.show(cmd, raw_text=True)
+            return out
+        cmd = "show flogi database"
+        out = self.show(cmd)
+        return out
+
+    @property
+    def fcnsdb(self):
+        if self.npv:
+            return None
+        cmd = "show fcns database"
+        out = self.show(cmd)
+        return out

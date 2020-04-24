@@ -3,6 +3,7 @@ import re
 
 from .constants import PAT_PC, PAT_FC
 from .nxapikeys import interfacekeys
+from .utility.utils import get_key
 
 log = logging.getLogger(__name__)
 
@@ -106,7 +107,7 @@ class Interface(object):
         """
         out = self.__parse_show_int_brief()
         if out is not None:
-            return out[interfacekeys.INT_OPER_MODE]
+            return out[get_key(interfacekeys.INT_OPER_MODE, self._SW_VER)]
         return None
 
     @mode.setter
@@ -141,7 +142,7 @@ class Interface(object):
         """
         out = self.__parse_show_int_brief()
         if out is not None:
-            return out[interfacekeys.INT_OPER_SPEED]
+            return out[get_key(interfacekeys.INT_OPER_SPEED, self._SW_VER)]
         return None
 
     @speed.setter
@@ -175,7 +176,7 @@ class Interface(object):
         """
         out = self.__parse_show_int_brief()
         if out is not None:
-            return out[interfacekeys.INT_ADMIN_TRUNK_MODE]
+            return out[get_key(interfacekeys.INT_ADMIN_TRUNK_MODE, self._SW_VER)]
         return None
 
     @trunk.setter
@@ -210,7 +211,7 @@ class Interface(object):
         """
         out = self.__parse_show_int_brief()
         if out is not None:
-            return out[interfacekeys.INT_STATUS]
+            return out[get_key(interfacekeys.INT_STATUS, self._SW_VER)]
         return None
 
     @status.setter
@@ -242,7 +243,7 @@ class Interface(object):
         if fcmatch:
             out = out['TABLE_interface_brief_fc']['ROW_interface_brief_fc']
             for eachout in out:
-                if eachout[interfacekeys.INTERFACE] == self._name:
+                if eachout[get_key(interfacekeys.INTERFACE, self._SW_VER)] == self._name:
                     return eachout
         elif pcmatch:
             # Need to check if "sh int brief" has PC info
@@ -255,7 +256,7 @@ class Interface(object):
             else:
                 outlist = out
             for eachout in outlist:
-                if eachout[interfacekeys.INTERFACE] == self._name:
+                if eachout[get_key(interfacekeys.INTERFACE, self._SW_VER)] == self._name:
                     return eachout
         return None
 
@@ -273,9 +274,27 @@ class Interface(object):
         out = self.__swobj.config(cmd)
         return out['body']["TABLE_counters_brief"]["ROW_counters_brief"]
 
+    def _execute_clear_counters_cmd(self):
+        cmd = "clear counters interface " + self._name
+        log.debug("Sending the cmd")
+        log.debug(cmd)
+        out = self.__swobj.config(cmd)
+
     class Counters(object):
         def __init__(self, intobj):
             self.__intobj = intobj
+
+        def clear(self):
+            """
+            Clear the counters on the interface
+            :return: None
+            :example:
+                >>>
+                >>> intcounters = int_obj.counters
+                >>> intcounters.clear()
+                >>>
+            """
+            self.__intobj._execute_clear_counters_cmd()
 
         @property
         def brief(self):
@@ -292,7 +311,7 @@ class Interface(object):
                 >>>
             """
             out = self.__intobj._execute_counters_brief_cmd()
-            out.pop(interfacekeys.INTERFACE)
+            out.pop(get_key(interfacekeys.INTERFACE, self._SW_VER))
             return out
 
         @property

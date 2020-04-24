@@ -1,3 +1,7 @@
+# All common constants for the lib can be put here
+
+DEFAULT = "DEFAULT"
+
 # Patterns
 PAT_FC = "^fc([1-9][0-9]?)/([1-9][0-9]?)$"
 PAT_PC = "^port-channel([1-9][0-9]?[0-9]?)$"

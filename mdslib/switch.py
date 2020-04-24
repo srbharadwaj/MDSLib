@@ -10,9 +10,11 @@ from .analytics import Analytics
 from .connection_manager.connect_nxapi import ConnectNxapi
 from .connection_manager.connect_ssh import SSHSession
 from .connection_manager.errors import CLIError, CustomException
+from .constants import DEFAULT
 from .nxapikeys import versionkeys, featurekeys
 from .parsers.system.shtopology import ShowTopology
 from .utility.switch_utility import SwitchUtils
+from .utility.utils import get_key
 
 log = logging.getLogger(__name__)
 
@@ -20,6 +22,9 @@ log = logging.getLogger(__name__)
 class UnsupportedVersion(CustomException):
     pass
 
+
+class UnsupportedFeature(CustomException):
+    pass
 
 class UnsupportedConfig(CustomException):
     pass
@@ -43,6 +48,10 @@ def log_exception(logger):
         return wrapper
     return decorator
 
+
+def print_and_log(msg):
+    log.info(msg)
+    print(msg)
 
 class Switch(SwitchUtils):
     """
@@ -86,7 +95,7 @@ class Switch(SwitchUtils):
         self._ssh_handle = SSHSession(host=ip_address, username=username, password=password, timeout=timeout)
         self.can_connect = False
         # Get version of the switch and log it
-        self.log_version()
+        self._log_version()
 
         # Verify that version is 8.4(2) and above
         self._verify_supported_version()
@@ -119,7 +128,7 @@ class Switch(SwitchUtils):
                 "Switch version: " + ver + "\n SDK does not support this switch version. Supported version are 8.4(2) and above")
 
     @log_exception(log)
-    def log_version(self):
+    def _log_version(self):
         """
 
         :return:
@@ -128,7 +137,7 @@ class Switch(SwitchUtils):
             log.debug(self.version)
             self.can_connect = True
         except requests.exceptions.ConnectionError as e:
-            msg = "ERROR!! Connection refused for the switch : " + self.ipaddr + \
+            msg = "ERROR!! Unable to get the switch version or may be connection refused for the switch : " + self.ipaddr + \
                   " Verify that the switch has " + self.connectiontype + " configured with port " + str(self.port)
             log.error(msg)
 
@@ -221,8 +230,16 @@ class Switch(SwitchUtils):
         if not out:
             raise CLIError("show version",
                            'Unable to fetch the switch software version using show version command. Need to debug further')
-        fullversion = out[versionkeys.VER_STR]
+        found = False
+        allkeys = versionkeys.VER_STR.keys()
+        for eachkey in allkeys:
+            if eachkey in out.keys():
+                fullversion = out[versionkeys.VER_STR[eachkey]]
+                found = True
+        if not found:
+            fullversion = out[versionkeys.VER_STR[DEFAULT]]
         ver = fullversion.split()[0]
+        self._SW_VER = ver
         return ver
 
     @property
@@ -244,7 +261,7 @@ class Switch(SwitchUtils):
         out = self.show("show version")
         if not out:
             return None
-        return out[versionkeys.CHASSIS_ID]
+        return out[get_key(versionkeys.CHASSIS_ID, self._SW_VER)]
 
     @property
     def form_factor(self):
@@ -363,7 +380,7 @@ class Switch(SwitchUtils):
         out = self.show("show version")
         if not out:
             return None
-        return out[versionkeys.KICK_FILE]
+        return out[get_key(versionkeys.KICK_FILE, self._SW_VER)]
 
     @property
     def system_image(self):
@@ -384,7 +401,7 @@ class Switch(SwitchUtils):
         out = self.show("show version")
         if not out:
             return None
-        return out[versionkeys.ISAN_FILE]
+        return out[get_key(versionkeys.ISAN_FILE, self._SW_VER)]
 
     @property
     def analytics(self):
@@ -400,6 +417,89 @@ class Switch(SwitchUtils):
         """
 
         return Analytics(self)
+
+    def feature(self, name, enable=None):
+
+        """
+        Enable or disable a feature or get the status of the feature
+        :param name: Name of the feature
+        :param enable: Set to True to enable the feature or set to False to disable the feature or set to None (deafault) to get the status of the feature
+        :return: Returns True of False if enable is set to None
+
+        :example:
+            >>>
+            >>> switch_obj = Switch(ip_address = switch_ip, username = switch_username, password = switch_password)
+            >>> # Get the status of the feature, in this case analytics is disabled
+            >>> ana = switch_obj.feature('analytics')
+            >>> print(ana)
+            False
+            >>> # Now lets enable the feature
+            >>> switch_obj.feature('analytics', True)
+            >>> print(switch_obj.feature('analytics'))
+            True
+            >>> # Now lets disable the feature
+            >>> switch_obj.feature('analytics', False)
+            >>> print(switch_obj.feature('analytics'))
+            False
+            >>>
+
+        .. warning:: Disabling feature 'nxapi' or 'ssh' via this API is not allowed
+
+        """
+        # Do a type check on the enable flag
+        if enable is not None:
+            if type(enable) is not bool:
+                raise TypeError("enable flag must be True(to enable the feature) or False(to disable the feature)")
+
+        if enable is None:
+            log.debug("Get the status of the feature " + name)
+            cmd = "show feature"
+            out = self.show(cmd)
+            list_of_features = out['TABLE_cfcFeatureCtrl2Table']['ROW_cfcFeatureCtrl2Table']
+            for eachfeature in list_of_features:
+                feature_name = eachfeature[get_key(featurekeys.NAME, self._SW_VER)].strip()
+                feature_status = eachfeature[get_key(featurekeys.STATUS, self._SW_VER)].strip()
+                if name == feature_name:
+                    return feature_status == 'enabled'
+            return False
+        elif enable:
+            log.debug("Trying to enable the feature " + name)
+            cmd = "feature " + name
+            try:
+                self.config(cmd)
+            except CLIError as c:
+                if "Invalid command" in c.message:
+                    raise UnsupportedFeature("This feature '" + name + "' is not supported on this switch ")
+        else:
+            # if we try to disable ssh or nxapi via this SDK then throw an exception
+            if name == 'ssh' or name == 'nxapi':
+                raise UnsupportedConfig("Disabling the feature '" + name + "' via this SDK API is not allowed!!")
+            log.debug("Trying to disable the feature " + name)
+            cmd = "no feature " + name
+            self.config(cmd)
+
+    @property
+    def cores(self):
+        """
+        Check if any cores are present in the switch
+
+        :return: list of cores present in the switch if any else None
+        :rtype: list or None
+
+        """
+        retval = []
+        PAT = "(?P<module>\d+)\s+(?P<instance>\d+)\s+(?P<process_name>\S+)\s+(?P<pid>\d+)\s+(?P<date_time>.*)"
+        PAT_COMP = re.compile(PAT)
+        cmd = "show cores"
+        out = self.show(cmd, raw_text=True)
+        alllines = out.splitlines()
+        for line in alllines:
+            result = PAT_COMP.match(line)
+            if result:
+                d = result.groupdict()
+                retval.append(d)
+        if retval:
+            return retval
 
     def _cli_error_check(self, command_response):
         error = command_response.get(u'error')
@@ -539,11 +639,12 @@ class Switch(SwitchUtils):
         :type timeout: int (default: 300)
         :param copyrs: if set to True, executes copy r s before doing a reload
         :type copyrs: bool (default: True)
-        :return: Returns {FAILED: <failed reason>} or {'SUCESS': None}
+        :return: Returns {FAILED: <failed reason>} or {'SUCCESS': None}
         """
         if module is None:
             # Switch reload
             cmd = "terminal dont-ask ; reload"
+            action_string = "reload switch"
             if copyrs:
                 log.info("Reloading switch after copy running-config startup-config")
                 crs = self.show("copy running-config startup-config", raw_text=True)
@@ -560,6 +661,7 @@ class Switch(SwitchUtils):
             # Module reload
             mod = str(module)
             cmd = "terminal dont-ask ; reload module " + mod
+            action_string = "reload module " + str(mod)
             if copyrs:
                 log.info("Reloading the module " + mod + " after copy running-config startup-config")
                 crs = self.show("copy running-config startup-config", raw_text=True)
@@ -572,115 +674,155 @@ class Switch(SwitchUtils):
             else:
                 log.info("Reloading the module " + mod + " without copy running-config startup-config")
 
+        out = self._verify_basic_stuff(cmd, action_string, timeout)
+        return out
+
+    def issu(self, kickstart, system, timeout=600, post_issu_checks=True):
+        print_and_log("Doing basic checks before starting ISSU")
+        # Set the switch timeout
+        if timeout < 600:
+            log.info("Timeout for ISSU cannot be less than 10 mins (600 sec)")
+            timeout = 600
+        self.timeout = timeout
+
+        # Check if any compatibilty issues
+        # show incompatibility-all system bootflash:/m9700-sf4ek9-mz.8.4.1.bin
+        cmd = "show incompatibility-all system " + system
+        out = self.show(cmd, raw_text=True)
+        alllines = out.splitlines()
+        noincompat = 0
+        for eachline in alllines:
+            if "No incompatible configurations" in eachline:
+                noincompat += 1
+        if noincompat != 2:
+            log.error("Incompatibilty check failed, please fix the incompatibilities")
+            log.error(out)
+            return {'FAILED': out}
+        print_and_log("There are no incompatible configurations so continuing with ISSU checks")
+
+        # Check impact status to determine if its disruptive or non-disruptive
+        # show install all impact kickstart m9700-sf4ek9-kickstart-mz.8.4.1.bin system m9700-sf4ek9-mz.8.4.1.bin
+        cmd = "show install all impact kickstart " + kickstart + " system " + system
+        out = self.show(cmd, raw_text=True)
+        alllines = out.splitlines()
+        nondisruptive = False
+        for eachline in alllines:
+            if "non-disruptive" in eachline:
+                nondisruptive = True
+                print_and_log("'show install all impact' was success, continuing with non-disruptive ISSU ")
+                break
+        if not nondisruptive:
+            log.error("Cannot do non-disruptive upgrade")
+            log.error(out)
+            return {'FAILED': out}
+
+        cmd = "terminal dont-ask ; install all kickstart " + kickstart + " system " + system
+        if post_issu_checks:
+            out = self._verify_basic_stuff(cmd, "install all", timeout)
+        else:
+            out = self._execute_install_all(cmd, timeout)
+        return out
+
+    def _execute_install_all(self, cmd, timeout):
+        # Send install all cmd
+        try:
+            out = self.config(cmd)
+        except CLIError as e:
+            if "Installer will perform compatibility check first. Please wait" not in e.message:
+                raise CLIError
+
+        # Wait for install all to start
+        print_and_log("Sent install command. Please wait for install all to complete. This will take a while...")
+        time.sleep(1800)
+
+        # Wait for atleast half hr
+        # Wait every 5 mins and check if install is a success
+        if timeout < 1800:
+            waittime = 1800
+        else:
+            waittime = timeout
+
+        timestocheck = int(waittime / 300)
+
+        for i in range(timestocheck):
+            print_and_log("Checking if install is complete and successful. Please wait...")
+
+            # show install all status - Install has been successful
+            cmd = "show install all status"
+            out = self.show(cmd, raw_text=True)
+            log.debug(out)
+            alllines = out.splitlines()
+            for eachline in alllines:
+                if "Install has been successful" in eachline:
+                    print_and_log("Install has been successful")
+                    return ('SUCCESS', None)
+            time.sleep(300)
+
+        log.error(
+            "Could not get install all success message from show install all status cmd, please check the log file for more details")
+        log.info(out)
+        return ('FAILED', out)
+
+    def _verify_basic_stuff(self, cmd, action_string, timeout):
         shmod_before = self.show("show module", raw_text=True).split("\n")
         shintb_before = self.show("show interface brief", raw_text=True).split("\n")
-        log.info("Reloading please wait...")
-        out = self.config(cmd)
-        time.sleep(timeout)
+        print_and_log("Doing " + action_string + " . Please wait...")
+        if "install all" in action_string:
+            status, error = self._execute_install_all(cmd, timeout)
+            if status == "FAILED":
+                return status, error
+        else:
+            out = self.config(cmd)
+            print_and_log("Please wait for " + str(timeout) + "secs..")
+            time.sleep(timeout)
         shmod_after = self.show("show module", raw_text=True).split("\n")
         shintb_after = self.show("show interface brief", raw_text=True).split("\n")
 
-        shcores = self.show("show cores", raw_text=True).split("\n")
-        if len(shcores) > 2:
+        cores = self.cores
+        if cores is not None:
             log.error(
                 "Cores present on the switch, please check the switch and also the log file")
-            log.error(shcores[2:])
+            log.error(cores)
             return {'FAILED': out}
 
         if shmod_before == shmod_after:
-            log.info("'show module' is correct after reload")
+            log.info("'show module' is correct after " + action_string)
         else:
             log.error(
-                "'show module' output is different from before and after reload, please check the log file")
-            log.debug("'show module' before reload")
+                "'show module' output is different from before and after " + action_string + ", please check the log file")
+            log.debug("'show module' before " + action_string)
             log.debug(shmod_before)
-            log.debug("'show module' after reload")
+            log.debug("'show module' after " + action_string)
             log.debug(shmod_after)
 
             bset = set(shmod_before)
             aset = set(shmod_after)
             bef = list(bset - aset)
             aft = list(aset - bset)
-            log.debug("diff of before after reload")
+            log.debug("diff of before after " + action_string)
             log.debug(bef)
             log.debug(aft)
             return {'FAILED': [bef, aft]}
 
         if shintb_before == shintb_after:
-            log.info("'show interface brief' is correct after reload")
+            log.info("'show interface brief' is correct after " + action_string)
         else:
             log.error(
-                "'show interface brief' output is different from before and after reload, please check the log file")
-            log.debug("'show interface brief' before reload")
+                "'show interface brief' output is different from before and after " + action_string + ", please check the log file")
+            log.debug("'show interface brief' before " + action_string)
             log.debug(shintb_before)
-            log.debug("'show interface brief' after reload")
+            log.debug("'show interface brief' after " + action_string)
             log.debug(shintb_after)
 
             bset = set(shintb_before)
             aset = set(shintb_after)
             bef = list(bset - aset)
             aft = list(aset - bset)
-            log.debug("diff of before after reload")
+            log.debug("diff of before after " + action_string)
             log.debug(bef)
             log.debug(aft)
             return {'FAILED': [bef, aft]}
-        log.info("Reload was successful")
-        return {'SUCESS': None}
-
-    def feature(self, name, enable=None):
-        """
-        Enable or disable a feature or get the status of the feature
-        :param name: Name of the feature
-        :param enable: Set to True to enable the feature or set to False to disable the feature or set to None (deafault) to get the status of the feature
-        :return: Returns True of False if enable is set to None
-
-        :example:
-            >>>
-            >>> switch_obj = Switch(ip_address = switch_ip, username = switch_username, password = switch_password)
-            >>> # Get the status of the feature, in this case analytics is disabled
-            >>> ana = switch_obj.feature('analytics')
-            >>> print(ana)
-            False
-            >>> # Now lets enable the feature
-            >>> switch_obj.feature('analytics', True)
-            >>> print(switch_obj.feature('analytics'))
-            True
-            >>> # Now lets disable the feature
-            >>> switch_obj.feature('analytics', False)
-            >>> print(switch_obj.feature('analytics'))
-            False
-            >>>
-
-        .. warning:: Disabling feature 'nxapi' or 'ssh' via this API is not allowed
-
-        """
-        # Do a type check on the enable flag
-        if enable is not None:
-            if type(enable) is not bool:
-                raise TypeError("enable flag must be True(to enable the feature) or False(to disable the feature)")
-
-        if enable is None:
-            log.debug("Get the status of the feature " + name)
-            cmd = "show feature"
-            out = self.show(cmd)
-            list_of_features = out['TABLE_cfcFeatureCtrl2Table']['ROW_cfcFeatureCtrl2Table']
-            for eachfeature in list_of_features:
-                if name == eachfeature[featurekeys.NAME].strip():
-                    if eachfeature[featurekeys.STATUS].strip() == 'enabled':
-                        return True
-                    return False
-            return False
-        elif enable:
-            log.debug("Trying to enable the feature " + name)
-            cmd = "feature " + name
-            self.config(cmd)
-        else:
-            # if we try to disable ssh or nxapi via this SDK then throw an exception
-            if name == 'ssh' or name == 'nxapi':
-                raise UnsupportedConfig("Disabling the feature '" + name + "' via this SDK API is not allowed!!")
-            log.debug("Trying to disable the feature " + name)
-            cmd = "no feature " + name
-            self.config(cmd)
+        return {'SUCCESS': None}
 
     def __is_npv_switch(self):
         jsonoutput = True

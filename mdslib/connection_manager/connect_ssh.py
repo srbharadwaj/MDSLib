@@ -69,7 +69,7 @@ class SSHSession(object):
             stdin, stdout, stderr = self.ssh.exec_command(command)
             output = stdout.readlines()
             error = stderr.readlines()
-            log.debug("Command ouput is")
+            log.debug("Command output is")
             log.debug(output)
             log.debug("Command error is")
             log.debug(error)

@@ -6,6 +6,7 @@ from .constants import ON, ACTIVE, PAT_FC, PAT_PC, VALID_PC_RANGE
 from .fc import Fc
 from .interface import Interface
 from .nxapikeys import portchanelkeys
+from .utility.utils import get_key
 
 log = logging.getLogger(__name__)
 
@@ -44,8 +45,11 @@ class PortChannel(Interface):
                 VALID_PC_RANGE[0]) + " to " + str(VALID_PC_RANGE[-1]))
         self._id = id
         name = "port-channel" + str(self._id)
+
+        # First set the port-channel id and name and then call the base class init
         super().__init__(switch, name)
         self.__swobj = switch
+        self._SW_VER = switch._SW_VER
 
     @property
     def id(self):
@@ -93,7 +97,7 @@ class PortChannel(Interface):
         if not self.__is_pc_present():
             return None
         detailout = self.__get_pc_facts()
-        self.__admin_ch_mode = detailout[portchanelkeys.ADMIN_CHN_MODE]
+        self.__admin_ch_mode = detailout[get_key(portchanelkeys.ADMIN_CHN_MODE, self._SW_VER)]
         memdetail = detailout.get('TABLE_port_channel_member_detail', None)
         if memdetail is None:
             return self.__admin_ch_mode
@@ -101,12 +105,12 @@ class PortChannel(Interface):
             allmem = memdetail['ROW_port_channel_member_detail']
             if type(allmem) is dict:
                 # it means there is only one port member in the port-channel
-                return allmem[portchanelkeys.OPER_CHN_MODE]
+                return allmem[get_key(portchanelkeys.OPER_CHN_MODE, self._SW_VER)]
             else:
                 # it means there is more than one member in the port-channel
                 # get one of the member in the port-channel and return its channel mode
                 onemem = allmem[0]
-                return onemem[portchanelkeys.OPER_CHN_MODE]
+                return onemem[get_key(portchanelkeys.OPER_CHN_MODE, self._SW_VER)]
 
     @channel_mode.setter
     def channel_mode(self, mode):
@@ -143,12 +147,12 @@ class PortChannel(Interface):
             allmem = memdetail['ROW_port_channel_member_detail']
             if type(allmem) is dict:
                 # it means there is only one port member in the port-channel
-                allintnames.append(allmem[portchanelkeys.PORT])
+                allintnames.append(allmem[get_key(portchanelkeys.PORT, self._SW_VER)])
             else:
                 # it means there is more than one member in the port-channel
                 # get the one of the member in the port-channel and return its channel mode
                 for eachmem in allmem:
-                    allintnames.append(eachmem[portchanelkeys.PORT])
+                    allintnames.append(eachmem[get_key(portchanelkeys.PORT, self._SW_VER)])
         retelements = {}
         for eachintname in allintnames:
             fcmatch = re.match(PAT_FC, eachintname)
@@ -253,7 +257,7 @@ class PortChannel(Interface):
                 # There are multiple PC in the switch
                 pcdblist = pcdb
             for eachpc in pcdblist:
-                pcname = eachpc[portchanelkeys.INT]
+                pcname = eachpc[get_key(portchanelkeys.INT, self._SW_VER)]
                 pcmatch = re.match(PAT_PC, pcname)
                 if pcmatch:
                     pcid = pcmatch.group(1).strip()

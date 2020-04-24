@@ -4,6 +4,8 @@ import time
 
 from .connection_manager.errors import CLIError, CustomException
 from .constants import ENHANCED, BASIC
+from .nxapikeys import devicealiaskeys
+from .utility.utils import get_key
 
 log = logging.getLogger(__name__)
 
@@ -26,6 +28,7 @@ class DeviceAlias(object):
 
     def __init__(self, sw):
         self.__swobj = sw
+        self._SW_VER = sw._SW_VER
 
     @property
     def mode(self):
@@ -344,19 +347,17 @@ class DeviceAlias(object):
 
         return dict(retoutput, **shdastatus)
 
-    @staticmethod
-    def __get_mode(facts_out):
-        return facts_out['database_mode']
+    def __get_mode(self, facts_out):
+        return facts_out[get_key(devicealiaskeys.MODE, self._SW_VER)]
 
-    @staticmethod
-    def __get_distribute(facts_out):
-        return facts_out['fabric_distribution']
+    def __get_distribute(self, facts_out):
+        return facts_out[get_key(devicealiaskeys.FABRIC_DISTRIBUTE, self._SW_VER)]
 
-    @staticmethod
-    def __locked_user(facts_out):
-        if 'Locked_by_user' in facts_out.keys():
-            log.debug(facts_out['Locked_by_user'])
-            return facts_out['Locked_by_user']
+    def __locked_user(self, facts_out):
+        locker_user = get_key(devicealiaskeys.LOCKED_USER, self._SW_VER)
+        if locker_user in facts_out.keys():
+            log.debug(facts_out[locker_user])
+            return facts_out[locker_user]
         else:
             return None
 

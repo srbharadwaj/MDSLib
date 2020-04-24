@@ -6,6 +6,7 @@ from .constants import PAT_FC, PAT_PC
 from .fc import Fc
 from .nxapikeys import vsankeys
 from .portchannel import PortChannel
+from .utility.utils import get_key
 
 log = logging.getLogger(__name__)
 
@@ -30,6 +31,7 @@ class Vsan(object):
     def __init__(self, switch, id):
         self.__swobj = switch
         self._id = id
+        self._SW_VER = switch._SW_VER
 
     @property
     def id(self):
@@ -46,7 +48,7 @@ class Vsan(object):
             out = self.__get_facts()
         except VsanNotPresent:
             return None
-        vid = out[vsankeys.VSAN_ID]
+        vid = out[get_key(vsankeys.VSAN_ID, self._SW_VER)]
         if type(vid) is str:
             return int(vid)
         else:
@@ -81,7 +83,7 @@ class Vsan(object):
         except VsanNotPresent:
             return None
         if out:
-            return out.get(vsankeys.VSAN_NAME)
+            return out.get(get_key(vsankeys.VSAN_NAME, self._SW_VER))
         return None
 
     @name.setter
@@ -104,7 +106,7 @@ class Vsan(object):
         except VsanNotPresent:
             return None
         if out:
-            return out.get(vsankeys.VSAN_STATE)
+            return out.get(get_key(vsankeys.VSAN_STATE, self._SW_VER))
         return None
 
     @property
@@ -261,7 +263,7 @@ class Vsan(object):
         listofvsaninfo = shvsan["TABLE_vsan"]["ROW_vsan"]
         vsanlist = []
         for eachv in listofvsaninfo:
-            vsanlist.append(str(eachv[vsankeys.VSAN_ID]))
+            vsanlist.append(str(eachv[get_key(vsankeys.VSAN_ID, self._SW_VER)]))
         if str(self._id) not in vsanlist:
             raise VsanNotPresent("Vsan " + str(self._id) + " is not present on the switch.")
 
@@ -269,7 +271,7 @@ class Vsan(object):
 
         # Parse show vsan json output
         for eachele in listofvsaninfo:
-            if str(eachele[vsankeys.VSAN_ID]) == str(self._id):
+            if str(eachele[get_key(vsankeys.VSAN_ID, self._SW_VER)]) == str(self._id):
                 shvsan_req_out = eachele
                 break
         if not shvsan_req_out:

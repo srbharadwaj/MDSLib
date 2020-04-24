@@ -5,6 +5,7 @@ from .connection_manager.errors import CLIError, CustomException, InvalidInterfa
 from .constants import SHUTDOWN, NO_SHUTDOWN, PAT_FC
 from .interface import Interface
 from .nxapikeys import interfacekeys
+from .utility.utils import get_key
 
 log = logging.getLogger(__name__)
 
@@ -35,6 +36,7 @@ class Fc(Interface):
                     name) + " is not correct, name must be 'fc' interface. Example: 'fc1/2'.. fcobj = Fc(switch_obj,'fc1/2') ")
         super().__init__(switch, name)
         self.__swobj = switch
+        self._SW_VER = switch._SW_VER
 
     # property for out_of_service
     def _set_out_of_service(self, value):
@@ -193,7 +195,7 @@ class Fc(Interface):
             """
 
             out = self.__fcobj._execute_transceiver_cmd()
-            retout = out.get(interfacekeys.SFP)
+            retout = out.get(get_key(interfacekeys.SFP, self._SW_VER))
             return ("sfp is present" in retout)
 
         @property
@@ -211,7 +213,8 @@ class Fc(Interface):
                 >>>
             """
             out = self.__fcobj._execute_transceiver_cmd()
-            return out.get(interfacekeys.NAME, None)
+            name = get_key(interfacekeys.NAME, self._SW_VER)
+            return out.get(name, None)
 
         @property
         def part_number(self):
@@ -228,7 +231,8 @@ class Fc(Interface):
                  >>>
              """
             out = self.__fcobj._execute_transceiver_cmd()
-            return out.get(interfacekeys.PART_NUM, None)
+            partnum = get_key(interfacekeys.PART_NUM, self._SW_VER)
+            return out.get(partnum, None)
 
         @property
         def cisco_id(self):
@@ -245,7 +249,8 @@ class Fc(Interface):
                 >>>
             """
             out = self.__fcobj._execute_transceiver_cmd()
-            return out.get(interfacekeys.CISCO_ID, None)
+            ciscoid = get_key(interfacekeys.CISCO_ID, self._SW_VER)
+            return out.get(ciscoid, None)
 
         @property
         def cisco_part_number(self):
@@ -262,7 +267,8 @@ class Fc(Interface):
                 >>>
             """
             out = self.__fcobj._execute_transceiver_cmd()
-            return out.get(interfacekeys.CISCO_PART_NUM, None)
+            partnum = get_key(interfacekeys.CISCO_PART_NUM, self._SW_VER)
+            return out.get(partnum, None)
 
         @property
         def cisco_product_id(self):
@@ -279,7 +285,8 @@ class Fc(Interface):
                 >>>
             """
             out = self.__fcobj._execute_transceiver_cmd()
-            return out.get(interfacekeys.CISCO_PRODUCT_ID, None)
+            prod_id = get_key(interfacekeys.CISCO_PRODUCT_ID, self._SW_VER)
+            return out.get(prod_id, None)
 
         @property
         def bit_rate(self):
@@ -296,7 +303,8 @@ class Fc(Interface):
                 >>>
             """
             out = self.__fcobj._execute_transceiver_cmd()
-            return out.get(interfacekeys.BIT_RATE, None)
+            bitrate = get_key(interfacekeys.BIT_RATE, self._SW_VER)
+            return out.get(bitrate, None)
 
         @property
         def min_speed(self):
@@ -313,7 +321,8 @@ class Fc(Interface):
                 >>>
             """
             out = self.__fcobj._execute_transceiver_cmd()
-            supp_speed = out.get(interfacekeys.SUPP_SPEED, None)
+            supported_speed = get_key(interfacekeys.SUPP_SPEED, self._SW_VER)
+            supp_speed = out.get(supported_speed, None)
             if supp_speed is not None:
                 pat = "Min speed: (\d+) Mb/s, Max speed: (\d+) Mb/s"
                 match = re.match(pat, supp_speed)
@@ -336,7 +345,8 @@ class Fc(Interface):
                 >>>
             """
             out = self.__fcobj._execute_transceiver_cmd()
-            supp_speed = out.get(interfacekeys.SUPP_SPEED, None)
+            supported_speed = get_key(interfacekeys.SUPP_SPEED, self._SW_VER)
+            supp_speed = out.get(supported_speed, None)
             if supp_speed is not None:
                 pat = "Min speed: (\d+) Mb/s, Max speed: (\d+) Mb/s"
                 match = re.match(pat, supp_speed)
@@ -361,7 +371,8 @@ class Fc(Interface):
             out = self.__fcobj._execute_transceiver_cmd()
             try:
                 calibdetails = out['TABLE_calibration']['ROW_calibration']['TABLE_detail']['ROW_detail']
-                return calibdetails.get(interfacekeys.TEMPERATURE, None)
+                temp = get_key(interfacekeys.TEMPERATURE, self._SW_VER)
+                return calibdetails.get(temp, None)
             except KeyError:
                 return None
 
@@ -382,7 +393,8 @@ class Fc(Interface):
             out = self.__fcobj._execute_transceiver_cmd()
             try:
                 calibdetails = out['TABLE_calibration']['ROW_calibration']['TABLE_detail']['ROW_detail']
-                return calibdetails.get(interfacekeys.VOLTAGE, None)
+                vol = get_key(interfacekeys.VOLTAGE, self._SW_VER)
+                return calibdetails.get(vol, None)
             except KeyError:
                 return None
 
@@ -403,7 +415,8 @@ class Fc(Interface):
             out = self.__fcobj._execute_transceiver_cmd()
             try:
                 calibdetails = out['TABLE_calibration']['ROW_calibration']['TABLE_detail']['ROW_detail']
-                return calibdetails.get(interfacekeys.CURRENT, None)
+                curr = get_key(interfacekeys.CURRENT, self._SW_VER)
+                return calibdetails.get(curr, None)
             except KeyError:
                 return None
 
@@ -424,7 +437,8 @@ class Fc(Interface):
             out = self.__fcobj._execute_transceiver_cmd()
             try:
                 calibdetails = out['TABLE_calibration']['ROW_calibration']['TABLE_detail']['ROW_detail']
-                return calibdetails.get(interfacekeys.TX_POWER, None)
+                txpow = get_key(interfacekeys.TX_POWER, self._SW_VER)
+                return calibdetails.get(txpow, None)
             except KeyError:
                 return None
 
@@ -445,6 +459,7 @@ class Fc(Interface):
             out = self.__fcobj._execute_transceiver_cmd()
             try:
                 calibdetails = out['TABLE_calibration']['ROW_calibration']['TABLE_detail']['ROW_detail']
-                return calibdetails.get(interfacekeys.RX_POWER, None)
+                rxpow = get_key(interfacekeys.RX_POWER, self._SW_VER)
+                return calibdetails.get(rxpow, None)
             except KeyError:
                 return None

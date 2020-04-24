@@ -8,6 +8,7 @@ from .constants import ENHANCED, BASIC, PERMIT, DENY, PAT_WWN
 from .fc import Fc
 from .nxapikeys import zonekeys
 from .portchannel import PortChannel
+from .utility.utils import get_key
 
 log = logging.getLogger(__name__)
 
@@ -43,6 +44,7 @@ class Zone(object):
 
     def __init__(self, switch, vsan, name):
         self.__swobj = switch
+        self._SW_VER = switch._SW_VER
         self._vsanobj = vsan
         self._vsan = self._vsanobj.id
         if self._vsan is None:
@@ -73,7 +75,7 @@ class Zone(object):
             raise VsanNotPresent("Vsan " + str(self._vsanobj._id) + " is not present on the switch.")
         out = self.__show_zone_name()
         if out:
-            return out[zonekeys.NAME]
+            return out[get_key(zonekeys.NAME, self._SW_VER)]
         return None
 
     @property
@@ -158,10 +160,10 @@ class Zone(object):
         #  {'fcalias': 'somefcalias'}]
         log.debug(retout)
         retvalues = []
-        valid_members = zonekeys.VALID_MEMBERS
+        valid_zone_members = get_key(zonekeys.VALID_MEMBERS, self._SW_VER)
         for eachmem in retout:
-            type = eachmem[zonekeys.ZONE_MEMBER_TYPE]
-            nxapikey = valid_members.get(type)
+            type = eachmem[get_key(zonekeys.ZONE_MEMBER_TYPE, self._SW_VER)]
+            nxapikey = valid_zone_members.get(type)
             for eachkey in eachmem.keys():
                 if eachkey.startswith(nxapikey):
                     value = eachmem[eachkey]
@@ -185,7 +187,7 @@ class Zone(object):
         if self._vsanobj.id is None:
             raise VsanNotPresent("Vsan " + str(self._vsanobj._id) + " is not present on the switch.")
         out = self.__show_zone_status()
-        self._lock_details = out[zonekeys.SESSION]
+        self._lock_details = out[get_key(zonekeys.SESSION, self._SW_VER)]
         if "none" in self._lock_details:
             return False
         else:
@@ -220,7 +222,7 @@ class Zone(object):
         if self._vsanobj.id is None:
             raise VsanNotPresent("Vsan " + str(self._vsanobj._id) + " is not present on the switch.")
         out = self.__show_zone_status()
-        return out[zonekeys.MODE]
+        return out[get_key(zonekeys.MODE, self._SW_VER)]
 
     @mode.setter
     def mode(self, value):
@@ -266,7 +268,7 @@ class Zone(object):
         if self._vsanobj.id is None:
             raise VsanNotPresent("Vsan " + str(self._vsanobj._id) + " is not present on the switch.")
         out = self.__show_zone_status()
-        return out[zonekeys.DEFAULT_ZONE]
+        return out[get_key(zonekeys.DEFAULT_ZONE, self._SW_VER)]
 
     @default_zone.setter
     def default_zone(self, value):
@@ -311,7 +313,7 @@ class Zone(object):
         if self._vsanobj.id is None:
             raise VsanNotPresent("Vsan " + str(self._vsanobj._id) + " is not present on the switch.")
         out = self.__show_zone_status()
-        return out[zonekeys.SMART_ZONE]
+        return out[get_key(zonekeys.SMART_ZONE, self._SW_VER)]
 
     @smart_zone.setter
     def smart_zone(self, value):
@@ -343,7 +345,7 @@ class Zone(object):
         if self._vsanobj.id is None:
             raise VsanNotPresent("Vsan " + str(self._vsanobj._id) + " is not present on the switch.")
         out = self.__show_zone_status()
-        retout = out.get(zonekeys.FULLDB_SIZE, None)
+        retout = out.get(get_key(zonekeys.FULLDB_SIZE, self._SW_VER), None)
         if retout is not None:
             return int(retout)
         return None
@@ -365,7 +367,7 @@ class Zone(object):
         if self._vsanobj.id is None:
             raise VsanNotPresent("Vsan " + str(self._vsanobj._id) + " is not present on the switch.")
         out = self.__show_zone_status()
-        retout = out.get(zonekeys.FULLDB_ZC, None)
+        retout = out.get(get_key(zonekeys.FULLDB_ZC, self._SW_VER), None)
         if retout is not None:
             return int(retout)
         return None
@@ -387,7 +389,7 @@ class Zone(object):
         if self._vsanobj.id is None:
             raise VsanNotPresent("Vsan " + str(self._vsanobj._id) + " is not present on the switch.")
         out = self.__show_zone_status()
-        retout = out.get(zonekeys.FULLDB_ZSC, None)
+        retout = out.get(get_key(zonekeys.FULLDB_ZSC, self._SW_VER), None)
         if retout is not None:
             return int(retout)
         return None
@@ -409,7 +411,7 @@ class Zone(object):
         if self._vsanobj.id is None:
             raise VsanNotPresent("Vsan " + str(self._vsanobj._id) + " is not present on the switch.")
         out = self.__show_zone_status()
-        retout = out.get(zonekeys.ACTIVEDB_SIZE, None)
+        retout = out.get(get_key(zonekeys.ACTIVEDB_SIZE, self._SW_VER), None)
         if retout is not None:
             return int(retout)
         return None
@@ -431,7 +433,7 @@ class Zone(object):
         if self._vsanobj.id is None:
             raise VsanNotPresent("Vsan " + str(self._vsanobj._id) + " is not present on the switch.")
         out = self.__show_zone_status()
-        retout = out.get(zonekeys.ACTIVEDB_ZC, None)
+        retout = out.get(get_key(zonekeys.ACTIVEDB_ZC, self._SW_VER), None)
         if retout is not None:
             return int(retout)
         return None
@@ -453,7 +455,7 @@ class Zone(object):
         if self._vsanobj.id is None:
             raise VsanNotPresent("Vsan " + str(self._vsanobj._id) + " is not present on the switch.")
         out = self.__show_zone_status()
-        retout = out.get(zonekeys.ACTIVEDB_ZSC, None)
+        retout = out.get(get_key(zonekeys.ACTIVEDB_ZSC, self._SW_VER), None)
         if retout is not None:
             return int(retout)
         return None
@@ -475,7 +477,7 @@ class Zone(object):
         if self._vsanobj.id is None:
             raise VsanNotPresent("Vsan " + str(self._vsanobj._id) + " is not present on the switch.")
         out = self.__show_zone_status()
-        return out.get(zonekeys.ACTIVEDB_ZSN, None)
+        return out.get(get_key(zonekeys.ACTIVEDB_ZSN, self._SW_VER), None)
 
     @property
     def maxdb_size(self):
@@ -494,7 +496,7 @@ class Zone(object):
         if self._vsanobj.id is None:
             raise VsanNotPresent("Vsan " + str(self._vsanobj._id) + " is not present on the switch.")
         out = self.__show_zone_status()
-        retout = out.get(zonekeys.MAXDB_SIZE, None)
+        retout = out.get(get_key(zonekeys.MAXDB_SIZE, self._SW_VER), None)
         if retout is not None:
             return int(retout)
         return None
@@ -516,7 +518,7 @@ class Zone(object):
         if self._vsanobj.id is None:
             raise VsanNotPresent("Vsan " + str(self._vsanobj._id) + " is not present on the switch.")
         out = self.__show_zone_status()
-        retout = out.get(zonekeys.EFFDB_SIZE, None)
+        retout = out.get(get_key(zonekeys.EFFDB_SIZE, self._SW_VER), None)
         if retout is not None:
             return int(retout)
         return None
@@ -538,7 +540,7 @@ class Zone(object):
         if self._vsanobj.id is None:
             raise VsanNotPresent("Vsan " + str(self._vsanobj._id) + " is not present on the switch.")
         out = self.__show_zone_status()
-        retout = out.get(zonekeys.EFFDB_PER, None)
+        retout = out.get(get_key(zonekeys.EFFDB_PER, self._SW_VER), None)
         if retout is not None:
             return str(retout) + "%"
         return None
@@ -560,7 +562,7 @@ class Zone(object):
         if self._vsanobj.id is None:
             raise VsanNotPresent("Vsan " + str(self._vsanobj._id) + " is not present on the switch.")
         out = self.__show_zone_status()
-        return out.get(zonekeys.STATUS, None)
+        return out.get(get_key(zonekeys.STATUS, self._SW_VER), None)
 
     def clear_lock(self):
         """
@@ -730,7 +732,8 @@ class Zone(object):
     def __get_cmd_list(self, mem, removeflag):
         key = list(mem.keys())[0]
         val = list(mem.values())[0]
-        if key in list(zonekeys.VALID_MEMBERS.keys()):
+        valid_zone_members = get_key(zonekeys.VALID_MEMBERS, self._SW_VER)
+        if key in list(valid_zone_members.keys()):
             cmd = "member " + key + " " + val
             if removeflag:
                 cmd = "no " + cmd
@@ -738,7 +741,7 @@ class Zone(object):
         else:
             raise InvalidZoneMemberType(
                 "Invalid zone member type (" + key + ") supported types are " + ', '.join(
-                    list(zonekeys.VALID_MEMBERS.keys())))
+                    list(valid_zone_members.keys())))
 
     def __show_zone_name(self):
 

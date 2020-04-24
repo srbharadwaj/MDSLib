@@ -47,6 +47,14 @@ print("switch type is : " + str(sw.type))
 print("switch kick img is : " + str(sw.kickstart_image))
 print("switch sys img is : " + str(sw.system_image))
 print("switch img str is : " + str(sw.image_string))
+
+print(sw.feature('telnet'))
+from mdslib.fc import Fc
+
+fcint = Fc(switch=sw104, name="fc1/1")
+print(fcint.name)
+exit()
+
 allint = sw.interfaces
 print(allint)
 for intname, eachint_obj in allint.items():

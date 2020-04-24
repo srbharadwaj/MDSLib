@@ -11,10 +11,11 @@ from mdslib.fc import Fc
 from mdslib.switch import Switch
 from mdslib.vsan import Vsan
 
+
 # Lets set the basic switch inputs
 user = 'admin'
 pw = 'nbv!2345'
-ipaddr = '10.126.94.121'
+ipaddr = '10.126.94.104'
 port = 8443
 
 # ######################################################
@@ -28,12 +29,60 @@ sw = Switch(
     port=port,
     timeout=30,
     verify_ssl=False)
+cmd = "show hardware internal errors all "
+try:
+    out = sw.show(cmd, raw_text=False)
+    print(out)
+except Exception as e:
+    print("EXCEPTION!!!")
+    # print(e.args)
+    out = sw.show(cmd, raw_text=False)
+    print(out)
 
+sshcode = """
+def ssh():
+    sw._ssh_handle.show("show version")
+"""
+nxapishow = """
+def nxapi():
+    sw.show("show version")
+"""
+nxapiapi = """
+def nxapi():
+    sw.version
+"""
+nxapishowrawtext = """
+def nxapi():
+    sw.show("show version",raw_text=True)
+"""
+
+# def nxapi():
+#     o = sw.show("show version")
+#     print(o)
+# def nxapi():
+#     o = sw.show("show version")
+#     print(o)
+
+import timeit
+
+from datetime import datetime
+
+now = datetime.now().time()
+print("now =", now)
+print(timeit.timeit(stmt=sshcode, globals=globals()))
+now = datetime.now().time()
+print("now =", now)
+print(timeit.timeit(stmt=nxapiapi, globals=globals()))
+now = datetime.now().time()
+print("now =", now)
+
+exit()
 # Get basic information of the switch
 print("ip    : " + sw.ipaddr)
 print("name  : " + sw.name)
 print("ver   : " + sw.version)
 print("model : " + sw.model)
+print(sw.__dict__)
 print("Sw interfaces: ")
 print(sw.interfaces)
 print(sw.feature('analytics'))
@@ -41,9 +90,9 @@ sw.feature('analytics', True)
 print(sw.feature('analytics'))
 sw.feature('nxapi', False)
 print(sw.feature('analytics'))
-import time;
+print(sw.cores)
 
-time.sleep(30000)
+exit()
 # #######################################
 # Output of the above prints are as follows
 # #######################################
