@@ -1,6 +1,7 @@
 import logging
 import re
 
+from .utils import get_key
 from .. import constants
 from ..fc import Fc
 from ..module import Module
@@ -42,7 +43,7 @@ class SwitchUtils:
             if type(allfc) is dict:
                 allfc = [allfc]
             for eacfc in allfc:
-                fcname = eacfc[interfacekeys.INTERFACE]
+                fcname = eacfc[get_key(interfacekeys.INTERFACE, self._SW_VER)]
                 fcobj = Fc(switch=self, name=fcname)
                 retlist[fcname] = fcobj
 
@@ -53,7 +54,7 @@ class SwitchUtils:
             if type(allpc) is dict:
                 allpc = [allpc]
             for eacpc in allpc:
-                pcname = eacpc[interfacekeys.INTERFACE]
+                pcname = eacpc[get_key(interfacekeys.INTERFACE, self._SW_VER)]
                 match = re.match(constants.PAT_PC, pcname)
                 if match:
                     pcid = int(match.group(1))
@@ -81,7 +82,7 @@ class SwitchUtils:
         cmd = "show vsan"
         out = self.show(cmd)['TABLE_vsan']['ROW_vsan']
         for eachele in out:
-            id = eachele.get(vsankeys.VSAN_ID)
+            id = eachele.get(get_key(vsankeys.VSAN_ID, self._SW_VER))
             vobj = Vsan(switch=self, id=id)
             retlist[id] = vobj
         return retlist
@@ -108,9 +109,9 @@ class SwitchUtils:
             log.warning("There are a total of " + str(
                 len(allzones)) + " zones across vsans. Please wait while we get the zone info...")
             for eachzone in allzones:
-                vsanid = eachzone.get(zonekeys.VSAN_ID)
+                vsanid = eachzone.get(get_key(zonekeys.VSAN_ID, self._SW_VER))
                 vobj = Vsan(switch=self, id=vsanid)
-                zname = eachzone.get(zonekeys.NAME)
+                zname = eachzone.get(get_key(zonekeys.NAME, self._SW_VER))
                 zobj = Zone(switch=self, vsan_obj=vobj, name=zname)
                 listofzones = retlist.get(vsanid, None)
                 # print(vsanid)
@@ -177,7 +178,8 @@ class SwitchUtils:
             modinfo = [modinfo]
 
         for eachmodinfo in modinfo:
-            m = Module(self, eachmodinfo[modulekeys.MOD_NUM], eachmodinfo)
+            modnumkey = get_key(modulekeys.MOD_NUM, self._SW_VER)
+            m = Module(self, eachmodinfo[modnumkey], eachmodinfo)
             mlist.append(m)
         return mlist
 
