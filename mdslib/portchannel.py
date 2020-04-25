@@ -49,7 +49,6 @@ class PortChannel(Interface):
         # First set the port-channel id and name and then call the base class init
         super().__init__(switch, name)
         self.__swobj = switch
-        self._SW_VER = switch._SW_VER
 
     @property
     def id(self):

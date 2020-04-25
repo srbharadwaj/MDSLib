@@ -24,6 +24,7 @@ class Interface(object):
     def __init__(self, switch, name):
         self.__swobj = switch
         self._name = name
+        self._SW_VER = switch._SW_VER
 
     # Interface is the base class for Fc and PortChannel.
     # So you cannot instantiate the base class(Interface), you have to instantiate the derived/child class (Fc,PortChannel)
@@ -283,6 +284,7 @@ class Interface(object):
     class Counters(object):
         def __init__(self, intobj):
             self.__intobj = intobj
+            self._SW_VER = intobj._SW_VER
 
         def clear(self):
             """

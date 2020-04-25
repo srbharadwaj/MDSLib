@@ -36,7 +36,6 @@ class Fc(Interface):
                     name) + " is not correct, name must be 'fc' interface. Example: 'fc1/2'.. fcobj = Fc(switch_obj,'fc1/2') ")
         super().__init__(switch, name)
         self.__swobj = switch
-        self._SW_VER = switch._SW_VER
 
     # property for out_of_service
     def _set_out_of_service(self, value):
@@ -178,6 +177,7 @@ class Fc(Interface):
 
         def __init__(self, fcobj):
             self.__fcobj = fcobj
+            self._SW_VER = fcobj._SW_VER
 
         @property
         def sfp_present(self):
