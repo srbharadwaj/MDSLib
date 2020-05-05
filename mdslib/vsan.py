@@ -43,7 +43,6 @@ class Vsan(object):
         :range: 1 to 4094
 
         """
-
         try:
             out = self.__get_facts()
         except VsanNotPresent:
