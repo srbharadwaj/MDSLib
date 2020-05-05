@@ -26,11 +26,11 @@ class SSHSession(object):
         Establish SSH Connection using given hostname, username and
         password which can be used to run commands.
         """
-        self.host = host
-        self.ssh = paramiko.SSHClient()
-        self.ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        self._host = host
+        self._ssh = paramiko.SSHClient()
+        self._ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         try:
-            self.ssh.connect(hostname=host, username=username, password=password, timeout=60, look_for_keys=False)
+            self._ssh.connect(hostname=host, username=username, password=password, timeout=60, look_for_keys=False)
         except paramiko.BadHostKeyException:
             raise SSHConnectionException('SSH Server host key could not be verified')
         except paramiko.AuthenticationException:
@@ -44,17 +44,17 @@ class SSHSession(object):
         """
         Return a representation string
         """
-        return "<%s (%s)>" % (self.__class__.__name__, self.host)
+        return "<%s (%s)>" % (self.__class__.__name__, self._host)
 
     def __del__(self):
         """Try to close connection if possible"""
         try:
             sleep(2)
-            self.ssh.close()
+            self._ssh.close()
         except Exception:
             pass
 
-    def command(self, command):
+    def _command(self, command):
         """
         Runs given command and returns output, error.
         This is the method you are after if none of the above fulfill your needs either to add more functionality or
@@ -66,7 +66,7 @@ class SSHSession(object):
         """
         log.debug("Command being sent is " + command)
         try:
-            stdin, stdout, stderr = self.ssh.exec_command(command)
+            stdin, stdout, stderr = self._ssh.exec_command(command)
             output = stdout.readlines()
             error = stderr.readlines()
             log.debug("Command output is")
@@ -77,12 +77,26 @@ class SSHSession(object):
         except Exception as e:
             raise SSHCommandException('Unable to run given command: {}. Exception: {}'.format(command, e))
 
+    def _check_error(self, cmd, output):
+        for eachout in output:
+            eachout = eachout.strip().strip("\n")
+            # print(eachout)
+            if 'Syntax error' in eachout:
+                return (True, eachout)
+        return False, None
+
     def config(self, cmd):
         newcmd = "configure terminal ; " + cmd
-        output, error = self.command(command=newcmd)
-        return output, error
+        output, error = self._command(command=newcmd)
+        flag, err = self._check_error(cmd, output)
+        if flag:
+            return output, err
+        return output, None
 
     def show(self, cmd):
         newcmd = "end ; " + cmd
-        output, error = self.command(command=newcmd)
-        return output, error
+        output, error = self._command(command=newcmd)
+        flag, err = self._check_error(cmd, output)
+        if flag:
+            return output, err
+        return output, None

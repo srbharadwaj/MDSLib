@@ -12,7 +12,7 @@ from .connection_manager.connect_ssh import SSHSession
 from .connection_manager.errors import CLIError, CustomException
 from .constants import DEFAULT
 from .nxapikeys import versionkeys, featurekeys
-from .parsers.system.shtopology import ShowTopology
+from .parsers.switch import ShowVersion, ShowFeature, ShowTopology
 from .utility.switch_utility import SwitchUtils
 from .utility.utils import get_key
 
@@ -22,6 +22,9 @@ log = logging.getLogger(__name__)
 class UnsupportedVersion(CustomException):
     pass
 
+
+class VersionNotFound(CustomException):
+    pass
 
 class UnsupportedFeature(CustomException):
     pass
@@ -83,22 +86,55 @@ class Switch(SwitchUtils):
         self.__ip_address = ip_address
         self.__username = username
         # self.__password = password
-        self.connectiontype = connection_type
+        self.connection_type = connection_type
         self.port = port
         self.timeout = timeout
         self.__verify_ssl = verify_ssl
 
-        log.info("Opening up a connection for switch with ip " + ip_address)
-        self.__connection = ConnectNxapi(ip_address, username, password, transport=connection_type, port=port,
-                                         verify_ssl=verify_ssl)
+        if self.connection_type != 'ssh':
+            log.info("Opening up a connection for switch with ip " + ip_address)
+            self.__connection = ConnectNxapi(ip_address, username, password, transport=connection_type, port=port,
+                                             verify_ssl=verify_ssl)
 
         self._ssh_handle = SSHSession(host=ip_address, username=username, password=password, timeout=timeout)
         self.can_connect = False
         # Get version of the switch and log it
-        self._log_version()
+        # self._log_version()
 
         # Verify that version is 8.4(2) and above
-        self._verify_supported_version()
+        # self._verify_supported_version()
+
+        self._set_connection_type_based_on_version()
+
+    def _set_connection_type_based_on_version(self):
+        try:
+            ver = self.version
+            if ver is None:
+                raise VersionNotFound("Unable to get the switch version, please check the log file")
+        except KeyError:
+            log.debug("Got keyerror while getting version, setting connection type to ssh")
+            self.connection_type = "ssh"
+        PAT_VER = "(?P<major_plus>\d+)\.(?P<major>\d+)\((?P<minor>\d+)(?P<patch>.*)\)"
+        RE_COMP = re.compile(PAT_VER)
+        result_ver = RE_COMP.match(ver)
+        if result_ver:
+            try:
+                result_dict = result_ver.groupdict()
+                majorplus = int(result_dict['major_plus'])
+                major = int(result_dict['major'])
+                minor = int(result_dict['minor'])
+                patch = result_dict['patch']
+                if majorplus >= 8 and major >= 4 and minor >= 2:
+                    log.debug("Switch version is " + ver + ". This is a supported switch version for using NXAPI")
+                else:
+                    log.debug("Switch version is not 8.4(2), setting connection type to ssh")
+                    self.connection_type = "ssh"
+            except Exception:
+                log.debug("Got execption while getting the switch version, setting connection type to ssh")
+                self.connection_type = "ssh"
+        else:
+            log.debug("Could not get the pattern match for version, setting connection type to ssh")
+            self.connection_type = "ssh"
 
     def _verify_supported_version(self):
         ver = self.version
@@ -113,7 +149,7 @@ class Switch(SwitchUtils):
                 minor = int(result_dict['minor'])
                 patch = result_dict['patch']
                 if majorplus >= 8 and major >= 4 and minor >= 2:
-                    log.debug("Switch version is " + ver + ". This is a supported switch version")
+                    log.debug("Switch version is " + ver + ". This is a supported switch version for SDK")
                 else:
                     raise UnsupportedVersion(
                         "Switch version: " + ver + "\n SDK does not support this switch version. Supported version are 8.4(2) and above")
@@ -127,6 +163,9 @@ class Switch(SwitchUtils):
             raise UnsupportedVersion(
                 "Switch version: " + ver + "\n SDK does not support this switch version. Supported version are 8.4(2) and above")
 
+    def is_connection_type_ssh(self):
+        return self.connection_type == 'ssh'
+
     @log_exception(log)
     def _log_version(self):
         """
@@ -138,7 +177,7 @@ class Switch(SwitchUtils):
             self.can_connect = True
         except requests.exceptions.ConnectionError as e:
             msg = "ERROR!! Unable to get the switch version or may be connection refused for the switch : " + self.ipaddr + \
-                  " Verify that the switch has " + self.connectiontype + " configured with port " + str(self.port)
+                  " Verify that the switch has " + self.connection_type + " configured with port " + str(self.port)
             log.error(msg)
 
     @property
@@ -208,8 +247,8 @@ class Switch(SwitchUtils):
             False
             >>>
         """
-
-        return self.__is_npv_switch()
+        return self.feature("npv")
+        #return self.__is_npv_switch()
 
     @property
     def version(self):
@@ -226,19 +265,26 @@ class Switch(SwitchUtils):
             >>>
         """
 
-        out = self.show("show version")
-        if not out:
-            raise CLIError("show version",
-                           'Unable to fetch the switch software version using show version command. Need to debug further')
-        found = False
-        allkeys = versionkeys.VER_STR.keys()
-        for eachkey in allkeys:
-            if eachkey in out.keys():
-                fullversion = out[versionkeys.VER_STR[eachkey]]
-                found = True
-        if not found:
-            fullversion = out[versionkeys.VER_STR[DEFAULT]]
-        ver = fullversion.split()[0]
+        cmd = "show version"
+
+        if self.is_connection_type_ssh():
+            outlines = self.show(cmd)
+            shver = ShowVersion(outlines)
+            ver = shver.version
+        else:
+            out = self.show(cmd)
+            if not out:
+                raise CLIError(cmd,
+                               'Unable to fetch the switch software version using show version command. Need to debug further')
+            found = False
+            allkeys = versionkeys.VER_STR.keys()
+            for eachkey in allkeys:
+                if eachkey in out.keys():
+                    fullversion = out[versionkeys.VER_STR[eachkey]]
+                    found = True
+            if not found:
+                fullversion = out[versionkeys.VER_STR[DEFAULT]]
+            ver = fullversion.split()[0]
         self._SW_VER = ver
         return ver
 
@@ -258,7 +304,12 @@ class Switch(SwitchUtils):
             MDS 9396T 96X32G FC (2 RU) Chassis
             >>>
         """
-        out = self.show("show version")
+        cmd = "show version"
+        if self.is_connection_type_ssh():
+            outlines = self.show(cmd)
+            shver = ShowVersion(outlines)
+            return shver.model
+        out = self.show(cmd)
         if not out:
             return None
         return out[get_key(versionkeys.CHASSIS_ID, self._SW_VER)]
@@ -357,6 +408,8 @@ class Switch(SwitchUtils):
             return "m9300-s1ek9"
         elif "9396T" in ff:
             return "m9300-s2ek9"
+        elif "9148" in ff:
+            return "m9100-s3ek9"
         else:
             return None
 
@@ -377,7 +430,14 @@ class Switch(SwitchUtils):
             >>>
         """
 
-        out = self.show("show version")
+        cmd = "show version"
+        if self.is_connection_type_ssh():
+            outlines = self.show(cmd)
+
+            shver = ShowVersion(outlines)
+            return shver.kickstart_image
+
+        out = self.show(cmd)
         if not out:
             return None
         return out[get_key(versionkeys.KICK_FILE, self._SW_VER)]
@@ -385,9 +445,9 @@ class Switch(SwitchUtils):
     @property
     def system_image(self):
         """
-        Returns the system image of the switch
+        Returns the switch image of the switch
 
-        :return: Returns system image of the switch or returns None if system image could not be fetched from the switch
+        :return: Returns switch image of the switch or returns None if switch image could not be fetched from the switch
         :rtype: str
 
         :example:
@@ -398,7 +458,13 @@ class Switch(SwitchUtils):
             bootflash:///m9300-s2ek9-mz.8.4.1.bin
             >>>
         """
-        out = self.show("show version")
+        cmd = "show version"
+        if self.is_connection_type_ssh():
+            outlines = self.show(cmd)
+            shver = ShowVersion(outlines)
+            return shver.system_image
+
+        out = self.show(cmd)
         if not out:
             return None
         return out[get_key(versionkeys.ISAN_FILE, self._SW_VER)]
@@ -455,6 +521,11 @@ class Switch(SwitchUtils):
             log.debug("Get the status of the feature " + name)
             cmd = "show feature"
             out = self.show(cmd)
+
+            if self.is_connection_type_ssh():
+                shfea = ShowFeature(out)
+                return shfea.is_enabled(name)
+
             list_of_features = out['TABLE_cfcFeatureCtrl2Table']['ROW_cfcFeatureCtrl2Table']
             for eachfeature in list_of_features:
                 feature_name = eachfeature[get_key(featurekeys.NAME, self._SW_VER)].strip()
@@ -556,6 +627,12 @@ class Switch(SwitchUtils):
         :rtype: dict
         """
 
+        if self.is_connection_type_ssh():
+            outlines, error = self._ssh_handle.show(command)
+            if error is not None:
+                raise CLIError(command, error)
+            return outlines
+
         commands = [command]
         list_result = self.show_list(commands, raw_text)
         if list_result:
@@ -575,6 +652,20 @@ class Switch(SwitchUtils):
         :return: The output of the show command, which could be raw text(str) or structured data(dict).
         :rtype: list
         """
+        if self.is_connection_type_ssh():
+            retdict = {}
+            for cmd in commands:
+                outlines, error = self._ssh_handle.show(cmd)
+                if error is not None:
+                    raise CLIError(command, error)
+                return outlines
+                retdict[cmd] = outlines
+            log.debug("Show commands sent are :")
+            log.debug(commands)
+            log.debug("Result got via ssh was :")
+            log.debug(retdict)
+            return retdict
+
         return_list = []
         if raw_text:
             response_list = self._cli_command(commands, method=u'cli_ascii')
@@ -604,6 +695,12 @@ class Switch(SwitchUtils):
         :return: command output
 
         """
+        if self.is_connection_type_ssh():
+            outlines, error = self._ssh_handle.config(command)
+            if error is not None:
+                raise Exception(command, error)
+                # raise CLIError(command,error)
+            return outlines
 
         commands = [command]
         list_result = self.config_list(commands, rpc, method)
@@ -716,7 +813,7 @@ class Switch(SwitchUtils):
             log.error(out)
             return {'FAILED': out}
 
-        cmd = "terminal dont-ask ; install all kickstart " + kickstart + " system " + system
+        cmd = "terminal dont-ask ; install all kickstart " + kickstart + " switch " + system
         if post_issu_checks:
             out = self._verify_basic_stuff(cmd, "install all", timeout)
         else:
@@ -823,37 +920,6 @@ class Switch(SwitchUtils):
             log.debug(aft)
             return {'FAILED': [bef, aft]}
         return {'SUCCESS': None}
-
-    def __is_npv_switch(self):
-        jsonoutput = True
-        try:
-            flist = self.show("show feature")
-        except CLIError as c:
-            if "cannot be parsed by the server" in c.message:
-                jsonoutput = False
-                flist = self.show("show feature", raw_text=True)
-                log.debug(c)
-            else:
-                log.error(
-                    "Could not discover the entire fabric, since 'show feature' could not be run on the switch " + self.ipaddr)
-
-        if not jsonoutput:
-            for eachline in flist.splitlines():
-                if 'npv' in eachline:
-                    if 'enabled' in eachline.lower():
-                        return True
-                    else:
-                        return False
-        else:
-            flist = flist['TABLE_cfcFeatureCtrl2Table']['ROW_cfcFeatureCtrl2Table']
-            # print(flist)
-            for eachf in flist:
-                if eachf['cfcFeatureCtrlName2'].strip() == 'npv':
-                    if eachf['cfcFeatureCtrlOpStatus2'].strip().lower() == 'enabled':
-                        return True
-                    else:
-                        return False
-        return False
 
     def get_peer_switches(self):
         peer_sw_list = []

@@ -5,6 +5,7 @@ import time
 from .connection_manager.errors import CLIError, CustomException
 from .constants import ENHANCED, BASIC
 from .nxapikeys import devicealiaskeys
+from .parsers.device_alias import ShowDeviceAliasDatabase, ShowDeviceAliasStatus
 from .utility.utils import get_key
 
 log = logging.getLogger(__name__)
@@ -60,6 +61,11 @@ class DeviceAlias(object):
             >>>
 
         """
+        if self.__swobj.is_connection_type_ssh():
+            cmd = "show device-alias status"
+            outlines = self.__swobj.show(cmd)
+            shdasta = ShowDeviceAliasStatus(outlines)
+            return shdasta.mode.lower()
 
         facts_out = self.__get_facts()
         return self.__get_mode(facts_out)
@@ -75,8 +81,11 @@ class DeviceAlias(object):
             raise InvalidMode("Invalid device alias mode: " + str(
                 mode) + ". Valid values are " + ENHANCED + "," + BASIC)
         out = self.__swobj.config(cmd)
-        if out is not None:
-            msg = out['msg']
+        if out and out is not None:
+            if self.__swobj.is_connection_type_ssh():
+                msg = out[0].strip("\n").strip()
+            else:
+                msg = out['msg']
             dist = self.distribute
             if dist and dist is not None:
                 self.__send_commit(mode)
@@ -115,8 +124,15 @@ class DeviceAlias(object):
 
         """
 
-        facts_out = self.__get_facts()
-        dis = self.__get_distribute(facts_out)
+        if self.__swobj.is_connection_type_ssh():
+            cmd = "show device-alias status"
+            outlines = self.__swobj.show(cmd)
+            shdasta = ShowDeviceAliasStatus(outlines)
+            dis = shdasta.distribute
+        else:
+            facts_out = self.__get_facts()
+            dis = self.__get_distribute(facts_out)
+
         if dis.lower() == 'enabled':
             return True
         else:
@@ -135,8 +151,11 @@ class DeviceAlias(object):
             log.debug("Setting device alias mode to 'Disabled'")
             log.debug(cmd)
         out = self.__swobj.config(cmd)
-        if out is not None:
-            msg = out['msg']
+        if out and out is not None:
+            if self.__swobj.is_connection_type_ssh():
+                msg = out[0].strip("\n").strip()
+            else:
+                msg = out['msg']
             raise CLIError(cmd, msg)
 
     @property
@@ -148,8 +167,15 @@ class DeviceAlias(object):
         :rtype: bool
         """
 
-        facts_out = self.__get_facts()
-        if self.__locked_user(facts_out) is None:
+        if self.__swobj.is_connection_type_ssh():
+            cmd = "show device-alias status"
+            outlines = self.__swobj.show(cmd)
+            shdasta = ShowDeviceAliasStatus(outlines)
+            lock_user = shdasta.locked_user
+        else:
+            facts_out = self.__get_facts()
+            lock_user = self.__locked_user(facts_out)
+        if lock_user is None:
             return False
         return True
 
@@ -161,6 +187,11 @@ class DeviceAlias(object):
         :return: database or None
         :rtype: dict(name:pwwn)
         """
+        if self.__swobj.is_connection_type_ssh():
+            cmd = "show device-alias database"
+            outlines = self.__swobj.show(cmd)
+            shdada = ShowDeviceAliasDatabase(outlines)
+            return shdada.database
 
         retout = {}
         facts_out = self.__get_facts()
@@ -200,8 +231,11 @@ class DeviceAlias(object):
             cmd = "device-alias database ; "
             cmd = cmd + " device-alias name " + name + " pwwn " + pwwn + " ; "
             out = self.__swobj.config(cmd)
-            if out is not None:
-                msg = out['msg']
+            if out and out is not None:
+                if self.__swobj.is_connection_type_ssh():
+                    msg = out[0].strip("\n").strip()
+                else:
+                    msg = out['msg']
                 self.__clear_lock_if_enhanced(mode)
                 dist = self.distribute
                 if dist and dist is not None:
@@ -236,8 +270,11 @@ class DeviceAlias(object):
         log.debug("Deleting device alias with args " + name)
         cmd = "device-alias database ; no device-alias name " + name
         out = self.__swobj.config(cmd)
-        if out is not None:
-            msg = out['msg']
+        if out and out is not None:
+            if self.__swobj.is_connection_type_ssh():
+                msg = out[0].strip("\n").strip()
+            else:
+                msg = out['msg']
             self.__clear_lock_if_enhanced(mode)
             dist = self.distribute
             if dist and dist is not None:
@@ -270,8 +307,11 @@ class DeviceAlias(object):
         log.debug("Renaming device alias with args " + oldname + " " + newname)
         cmd = "device-alias database ; device-alias rename " + oldname + " " + newname
         out = self.__swobj.config(cmd)
-        if out is not None:
-            msg = out['msg']
+        if out and out is not None:
+            if self.__swobj.is_connection_type_ssh():
+                msg = out[0].strip("\n").strip()
+            else:
+                msg = out['msg']
             self.__clear_lock_if_enhanced(mode)
             dist = self.distribute
             if dist and dist is not None:
@@ -321,8 +361,11 @@ class DeviceAlias(object):
         log.debug("Sending the cmd clear device-alias database")
         cmd = "terminal dont-ask ; device-alias database ; clear device-alias database ; no terminal dont-ask "
         out = self.__swobj.config(cmd)
-        if out is not None:
-            msg = out['msg']
+        if out and out is not None:
+            if self.__swobj.is_connection_type_ssh():
+                msg = out[0].strip("\n").strip()
+            else:
+                msg = out['msg']
             self.__clear_lock_if_enhanced(mode)
             dist = self.distribute
             if dist and dist is not None:
@@ -382,8 +425,11 @@ class DeviceAlias(object):
         log.debug("Sending the command..")
         log.debug(command)
         out = self.__swobj.config(command)
-        if out is not None:
-            msg = out['msg']
+        if out and out is not None:
+            if self.__swobj.is_connection_type_ssh():
+                msg = out[0].strip("\n").strip()
+            else:
+                msg = out['msg']
             if "Device Alias already present" in msg:
                 log.info("The command : " + command + " was not executed because Device Alias already present")
             elif "Another device-alias already present with the same pwwn" in msg:
@@ -405,9 +451,12 @@ class DeviceAlias(object):
         log.debug(cmd)
         out = self.__swobj.config(cmd)
         log.debug(out)
-        if out is not None:
-            msg = out['msg'].strip("\n").strip()
-            if "There are no pending changes" in msg:
+        if out and out is not None:
+            if self.__swobj.is_connection_type_ssh():
+                msg = out[0].strip("\n").strip()
+            else:
+                msg = out['msg'].strip(".\n").strip()
+            if "There are no pending coiohanges" in msg:
                 log.debug("The commit command was not executed because Device Alias already present")
             elif "Device-alias enhanced zone member present" in msg:
                 # log.error(msg)
