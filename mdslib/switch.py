@@ -657,8 +657,8 @@ class Switch(SwitchUtils):
             for cmd in commands:
                 outlines, error = self._ssh_handle.show(cmd)
                 if error is not None:
-                    raise CLIError(command, error)
-                return outlines
+                    raise CLIError(cmd, error)
+                #return outlines
                 retdict[cmd] = outlines
             log.debug("Show commands sent are :")
             log.debug(commands)
@@ -697,9 +697,11 @@ class Switch(SwitchUtils):
         """
         if self.is_connection_type_ssh():
             outlines, error = self._ssh_handle.config(command)
+            #if outlines:
+            #    raise CLIError(command,outlines)
             if error is not None:
-                raise Exception(command, error)
-                # raise CLIError(command,error)
+                #raise Exception(command, error)
+                raise CLIError(command,error)
             return outlines
 
         commands = [command]
@@ -716,6 +718,21 @@ class Switch(SwitchUtils):
         :return: command output
 
         """
+        if self.is_connection_type_ssh():
+            retdict = {}
+            for cmd in commands:
+                outlines, error = self._ssh_handle.config(cmd)
+                #if outlines:
+                #    raise CLIError(cmd,outlines[0])
+                if error is not None:
+                    #raise Exception(cmd, error)
+                    raise CLIError(cmd, error)
+                retdict[cmd] = outlines
+            log.debug("Config commands sent are :")
+            log.debug(commands)
+            log.debug("Result got via ssh was :")
+            log.debug(retdict)
+            return retdict
 
         return_list = self._cli_command(commands, rpc=rpc, method=method)
 
