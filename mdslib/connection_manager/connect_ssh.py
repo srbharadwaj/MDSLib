@@ -85,10 +85,16 @@ class SSHSession(object):
                 return (True, eachout)
         return False, None
 
+    def _check_error_config(self, cmd, output):
+        if output:
+            out = "".join([eachline.strip().strip("\n") for eachline in output])
+            return True, out
+        return False, None
+
     def config(self, cmd):
         newcmd = "configure terminal ; " + cmd
         output, error = self._command(command=newcmd)
-        flag, err = self._check_error(cmd, output)
+        flag, err = self._check_error_config(cmd, output)
         if flag:
             return output, err
         return output, None
