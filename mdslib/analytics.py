@@ -106,11 +106,10 @@ class Analytics():
         """
 
         all = []
-        out, error = self._sw._ssh_handle.config("show analytics system-load")
+        out = self._sw.show("show analytics system-load", use_ssh=True)
         for eachout in out:
             eachout = eachout.strip()
             if any(char.isdigit() for char in eachout):
-                print(eachout)
                 result_mod = MOD_PAT_COMP.match(eachout)
                 if result_mod:
                     # print(result_mod.group())
@@ -132,7 +131,7 @@ class Analytics():
         else:
             return all
 
-    def _validate_profile(profile):
+    def _validate_profile(self, profile):
         # TODO
         # LIMITATIONS:
         # Need to do validation for profiles
@@ -154,8 +153,11 @@ class Analytics():
 
         return True
 
-    def _get_select_query_string(profile):
-        metrics = profile.get(METRICS, None)
+    def _get_select_query_string(self, profile, ignore_metrics=True):
+        if ignore_metrics:
+            metrics = None
+        else:
+            metrics = profile.get(METRICS, None)
         if (metrics is None) or (len(metrics) == 0):
             selq = "select all from fc-" + profile.get(PROTOCOL) + "." + profile.get(VIEW)
         else:
@@ -204,8 +206,7 @@ class Analytics():
                     cmd = cmd + " clear"
             elif differential:
                 cmd = cmd + " differential"
-            log.info("Cmd to be sent is " + cmd)
-            return self._sw._ssh_handle.config(cmd)
+            return self._sw.config(cmd, use_ssh=True)
 
     def delete_query(self, name):
         """
@@ -219,8 +220,7 @@ class Analytics():
             >>> ana_hand.delete_query(port_scsi_profile)
         """
         cmd = "no analytics name " + name
-        log.info("Cmd to be sent is " + cmd)
-        return self._ssh_handle.config(cmd)
+        return self._sw.config(cmd)
 
     def show_query(self, name=None, profile=None, clear=False, differential=False):
         """
@@ -271,13 +271,11 @@ class Analytics():
                         cmd = cmd + " differential "
                 elif differential:
                     cmd = cmd + " differential "
-                log.info("Cmd to be sent is " + cmd)
-                return self._sw._ssh_handle.show(cmd)
+                return self._sw.show(cmd, use_ssh=True)
         else:
             # Name is set, so its an install query
             cmd = "show analytics query name " + name + " result"
-            log.info("Cmd to be sent is " + cmd)
-            return self._sw._ssh_handle.show(cmd)
+            return self._sw.show(cmd, use_ssh=True)
 
     def clear(self, profile):
         """
@@ -301,11 +299,13 @@ class Analytics():
             >>> ana_hand.clear(port_scsi_profile)
             >>>
         """
+
+        # BUG: mdslib.connection_manager.errors.CLIError: The command " clear analytics query "select port,total_read_io_count,total_write_io_count from fc-scsi.port" " gave the error " Column selection is not allowed for clear ".
+
         if self._validate_profile(profile):
-            selq = self._get_select_query_string(profile)
+            selq = self._get_select_query_string(profile, ignore_metrics=True)
             cmd = 'clear analytics query "' + selq + '"'
-            log.info("Cmd to be sent is " + cmd)
-            return self._sw._ssh_handle.config(cmd)
+            return self._sw.config(cmd, use_ssh=True)
 
     def purge(self, profile):
         """
@@ -329,12 +329,13 @@ class Analytics():
             >>> ana_hand.purge(port_scsi_profile)
             >>>
         """
+        # BUG: mdslib.connection_manager.errors.CLIError: The command " terminal dont-ask ; purge analytics query "select port,total_read_io_count,total_write_io_count from fc-scsi.port" ; no terminal dont-ask " gave the error " Column selection is not allowed for purge ".
+
         if self._validate_profile(profile):
-            selq = self._get_select_query_string(profile)
+            selq = self._get_select_query_string(profile, ignore_metrics=True)
             purgecmd = 'purge analytics query "' + selq + '"'
             cmd = "terminal dont-ask ; " + purgecmd + " ; no terminal dont-ask"
-            log.info("Cmd to be sent is " + cmd)
-            return self._sw._ssh_handle.config(cmd)
+            return self._sw.config(cmd, use_ssh=True)
 
     def npu_load(self, module, protocol=None):
         """

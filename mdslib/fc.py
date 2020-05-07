@@ -1,7 +1,7 @@
 import logging
 import re
 
-from .connection_manager.errors import CLIError, CustomException, InvalidInterface
+from .connection_manager.errors import CustomException, InvalidInterface
 from .constants import SHUTDOWN, NO_SHUTDOWN, PAT_FC
 from .interface import Interface
 from .nxapikeys import interfacekeys
@@ -109,19 +109,17 @@ class Fc(Interface):
         is_nvme = False
         pat = "analytics type fc-(.*)"
         cmd = "show running-config interface " + self.name + " | grep analytics "
-        out, error = self.__swobj._ssh_handle.show(cmd)
-        if len(error) != 0:
-            raise CLIError(cmd, error)
-        else:
-            for eachline in out:
-                newline = eachline.strip().strip("\n")
-                m = re.match(pat, newline)
-                if m:
-                    type = m.group(1)
-                    if type == 'scsi':
-                        is_scsi = True
-                    if type == 'nvme':
-                        is_nvme = True
+        out = self.__swobj.show(cmd, use_ssh=True)
+
+        for eachline in out:
+            newline = eachline.strip().strip("\n")
+            m = re.match(pat, newline)
+            if m:
+                type = m.group(1)
+                if type == 'scsi':
+                    is_scsi = True
+                if type == 'nvme':
+                    is_nvme = True
         if is_scsi:
             if is_nvme:
                 return 'all'
@@ -147,9 +145,7 @@ class Fc(Interface):
                 "Invalid analytics type '" + type + "'. Valid types are scsi,nvme,all,None(to disable analytics type)")
 
         cmdtosend = "interface " + self.name + " ; " + cmd
-        out, error = self.__swobj._ssh_handle.config(cmdtosend)
-        if len(error) != 0:
-            raise CLIError(cmd, error)
+        self.__swobj.config(cmdtosend)
 
     def _execute_transceiver_cmd(self):
         result = {}

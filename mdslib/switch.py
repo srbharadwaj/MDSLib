@@ -7,8 +7,8 @@ import requests
 import time
 
 from .analytics import Analytics
+from .connection_manager.connect_netmiko import SSHSession
 from .connection_manager.connect_nxapi import ConnectNxapi
-from .connection_manager.connect_ssh import SSHSession
 from .connection_manager.errors import CLIError, CustomException
 from .constants import DEFAULT
 from .nxapikeys import versionkeys, featurekeys
@@ -614,7 +614,7 @@ class Switch(SwitchUtils):
                         text_response_list.append(eachoutput[u'body'])
         return text_response_list
 
-    def show(self, command, raw_text=False):
+    def show(self, command, raw_text=False, use_ssh=False):
         """
         Send a show command to the switch
 
@@ -626,8 +626,8 @@ class Switch(SwitchUtils):
         :return: The output of the show command, which could be raw text(str) or structured data(dict).
         :rtype: dict
         """
-
-        if self.is_connection_type_ssh():
+        log.debug("Show cmd to be sent is " + ' -- ' + command)
+        if self.is_connection_type_ssh() or use_ssh:
             outlines, error = self._ssh_handle.show(command)
             if error is not None:
                 raise CLIError(command, error)
@@ -640,7 +640,7 @@ class Switch(SwitchUtils):
         else:
             return {}
 
-    def show_list(self, commands, raw_text=False):
+    def show_list(self, commands, raw_text=False, use_ssh=False):
         """
         Send a list of show commands to the switch
 
@@ -652,7 +652,8 @@ class Switch(SwitchUtils):
         :return: The output of the show command, which could be raw text(str) or structured data(dict).
         :rtype: list
         """
-        if self.is_connection_type_ssh():
+        log.debug("Show cmds to be sent are " + ' -- '.join(commands))
+        if self.is_connection_type_ssh() or use_ssh:
             retdict = {}
             for cmd in commands:
                 outlines, error = self._ssh_handle.show(cmd)
@@ -685,7 +686,7 @@ class Switch(SwitchUtils):
 
         return return_list
 
-    def config(self, command, rpc=u'2.0', method=u'cli'):
+    def config(self, command, rpc=u'2.0', method=u'cli', use_ssh=False):
         """
         Send any command to run from the config mode
 
@@ -695,11 +696,12 @@ class Switch(SwitchUtils):
         :return: command output
 
         """
-        if self.is_connection_type_ssh():
+        log.debug("Config cmd to be sent is " + ' -- ' + command)
+        if self.is_connection_type_ssh() or use_ssh:
             outlines, error = self._ssh_handle.config(command)
             if error is not None:
-                raise Exception(command, error)
-                # raise CLIError(command,error)
+                # raise Exception(command, error)
+                raise CLIError(command, error)
             return outlines
 
         commands = [command]
@@ -716,7 +718,7 @@ class Switch(SwitchUtils):
         :return: command output
 
         """
-
+        log.debug("Show cmds to be sent are " + ' -- '.join(commands))
         return_list = self._cli_command(commands, rpc=rpc, method=method)
 
         log.debug("Config commands sent are :")
