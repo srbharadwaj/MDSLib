@@ -23,7 +23,10 @@ class ShowVsan(object):
  
     @property
     def id(self):        
-        return self._group_dict.get('vsan', None)
+        vsan_id = self._group_dict.get('vsan', None)
+        if vsan_id is not None:
+            return int(vsan_id)
+        return None
 
     @property
     def name(self):
